@@ -1,8 +1,10 @@
 mod fetch;
 mod literal;
+mod location;
 
 pub use fetch::FetchMatcher;
 pub use literal::LiteralCollector;
+pub use location::LocationMatcher;
 
 pub struct MatchContext<'a> {
     pub source: &'a str,
