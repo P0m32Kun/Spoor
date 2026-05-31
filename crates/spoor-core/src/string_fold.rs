@@ -14,13 +14,7 @@ pub fn collapsed_string(expr: &Expression<'_>) -> String {
                 out.push_str(quasi.value.raw.as_str());
             }
             if !tpl.expressions.is_empty() {
-                if !out.is_empty() {
-                    out.push_str(EXPR_PLACEHOLDER);
-                } else if tpl.expressions.len() > 1 {
-                    out.push_str(EXPR_PLACEHOLDER);
-                } else {
-                    out.push_str(EXPR_PLACEHOLDER);
-                }
+                out.push_str(EXPR_PLACEHOLDER);
             }
             out
         }
@@ -99,6 +93,11 @@ mod tests {
     #[test]
     fn double_expr() {
         assert_eq!(fold_source("a + b"), EXPR_PLACEHOLDER);
+    }
+
+    #[test]
+    fn template_literal_with_expression() {
+        assert_eq!(fold_source("`/api/${id}`"), "/api/EXPR");
     }
 
     #[test]

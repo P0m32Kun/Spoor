@@ -18,7 +18,9 @@ pub fn maybe_url(s: &str) -> bool {
     {
         return false;
     }
-    if s == EXPR_PLACEHOLDER || s.starts_with(EXPR_PLACEHOLDER) && !s.contains('/') && !s.contains('.') {
+    if s == EXPR_PLACEHOLDER
+        || s.starts_with(EXPR_PLACEHOLDER) && !s.contains('/') && !s.contains('.')
+    {
         // bare EXPR with no path-like chars
         if s.len() <= EXPR_PLACEHOLDER.len() + 2 {
             return false;

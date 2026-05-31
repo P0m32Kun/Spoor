@@ -4,7 +4,6 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use spoor_core::{Analyzer, FindingKind, ScanResult};
-use serde_json;
 
 #[derive(Parser)]
 #[command(
@@ -55,10 +54,12 @@ enum Commands {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     match cli.command {
-        Commands::Scan { path, output, jsonl } => run_scan(path, output, jsonl, None)?,
-        Commands::Paths { path, output } => {
-            run_scan(path, output, false, Some(FindingKind::Path))?
-        }
+        Commands::Scan {
+            path,
+            output,
+            jsonl,
+        } => run_scan(path, output, jsonl, None)?,
+        Commands::Paths { path, output } => run_scan(path, output, false, Some(FindingKind::Path))?,
         Commands::Apis { path, output } => {
             run_scan(path, output, false, Some(FindingKind::Endpoint))?
         }
@@ -81,9 +82,7 @@ fn run_scan(
     if let Some(kind) = kind_filter {
         findings.retain(|f| f.kind == kind);
         if matches!(kind, FindingKind::Endpoint | FindingKind::Secret) && findings.is_empty() {
-            eprintln!(
-                "note: {kind:?} extraction is not implemented yet (Phase 1/2); no results"
-            );
+            eprintln!("note: {kind:?} extraction is not implemented yet (Phase 1/2); no results");
         }
     }
     let result = ScanResult {
@@ -95,7 +94,7 @@ fn run_scan(
         result
             .findings
             .iter()
-            .map(|f| serde_json::to_string(f))
+            .map(serde_json::to_string)
             .collect::<Result<Vec<_>, _>>()?
             .join("\n")
             + "\n"

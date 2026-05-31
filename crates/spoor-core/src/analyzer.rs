@@ -1,8 +1,8 @@
 use oxc_allocator::Allocator;
 use oxc_ast::ast::Expression;
 use oxc_ast_visit::{
-    Visit,
     walk::{walk_expression, walk_program},
+    Visit,
 };
 use oxc_parser::{ParseOptions, Parser};
 use oxc_span::SourceType;
@@ -150,8 +150,9 @@ mod tests {
         let outcome = analyzer.parse_outcome();
 
         assert!(
-            outcome.error_count > 0 || outcome.recovered,
-            "expected parse errors or recovery for broken.js"
+            outcome.error_count > 0,
+            "expected parse errors for broken.js, got error_count={}",
+            outcome.error_count
         );
 
         let findings = analyzer.collect_literal_paths();
@@ -176,13 +177,9 @@ mod tests {
 
         let values: std::collections::HashSet<_> =
             findings.iter().map(|f| f.value.as_str()).collect();
-        let expected = [
-            "/api/v1",
-            "/users",
-            "https://cdn.example.com/app.js",
-        ]
-        .into_iter()
-        .collect::<std::collections::HashSet<_>>();
+        let expected = ["/api/v1", "/users", "https://cdn.example.com/app.js"]
+            .into_iter()
+            .collect::<std::collections::HashSet<_>>();
         assert_eq!(values, expected);
     }
 }
