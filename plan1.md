@@ -74,12 +74,12 @@ js-rs/
 
 **交付**：能解析 JS，跑通一条最小链路。
 
-- [ ] Workspace：`js-rs-core` + `js-rs-cli`
-- [ ] `Analyzer::new(source)` → Oxc 解析，错误可恢复（坏 JS 仍尽量出结果）
-- [ ] AST 遍历骨架（`Visit`）
-- [ ] `collapsed_string()`：字面量拼接 + `EXPR` 占位
-- [ ] `maybe_url()` 启发式（移植 jsluice 逻辑）
-- [ ] 单元测试：拼接、`EXPR`、转义字符串
+- [x] Workspace：`spoor-core` + `spoor-cli`
+- [x] `Analyzer::new(source)` → Oxc 解析，错误可恢复（坏 JS 仍尽量出结果）
+- [x] AST 遍历骨架（`Visit`）
+- [x] `collapsed_string()`：字面量拼接 + `EXPR` 占位
+- [x] `maybe_url()` 启发式（移植 jsluice 逻辑）
+- [x] 单元测试：拼接、`EXPR`、单字面量（转义字符串测试已替换）
 
 ### Phase 1 — URL 提取对标 jsluice（约 2 周）
 
