@@ -49,6 +49,11 @@ pub fn maybe_url(s: &str) -> bool {
     false
 }
 
+/// Like [`maybe_url`] but rejects folded strings that still contain unresolved `EXPR`.
+pub fn resolved_maybe_url(s: &str) -> bool {
+    !s.contains(EXPR_PLACEHOLDER) && maybe_url(s)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -67,5 +72,12 @@ mod tests {
         assert!(maybe_url("https://example.com/x"));
         assert!(maybe_url("//cdn.example.com/app.js"));
         assert!(maybe_url("api/v2/auth"));
+    }
+
+    #[test]
+    fn resolved_maybe_url_rejects_expr() {
+        assert!(!resolved_maybe_url("EXPR/users"));
+        assert!(!resolved_maybe_url("/api/EXPR"));
+        assert!(resolved_maybe_url("/api/v1/users"));
     }
 }

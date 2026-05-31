@@ -7,7 +7,7 @@ use oxc_ast_visit::{
 use crate::finding::{Finding, Origin};
 use crate::matcher::MatchContext;
 use crate::string_fold::collapsed_string;
-use crate::url::maybe_url;
+use crate::url::resolved_maybe_url;
 
 pub struct FetchMatcher<'a> {
     ctx: MatchContext<'a>,
@@ -34,7 +34,7 @@ impl<'a> Visit<'a> for FetchMatcher<'a> {
             if let Some(first) = call.arguments.first() {
                 if let Some(expr) = first.as_expression() {
                     let folded = collapsed_string(expr);
-                    if maybe_url(&folded) {
+                    if resolved_maybe_url(&folded) {
                         let method = extract_method(&call.arguments);
                         let (line, column) = self.ctx.line_col(call.span.start);
                         let origin = Origin {

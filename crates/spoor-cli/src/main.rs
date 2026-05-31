@@ -19,7 +19,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Scan for paths, endpoints, and secrets (Phase 1+; currently literal paths)
+    /// Scan for paths, endpoints, and secrets (fetch / location / XHR + literals)
     Scan {
         #[arg(value_name = "PATH")]
         path: PathBuf,

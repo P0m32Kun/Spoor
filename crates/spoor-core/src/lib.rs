@@ -12,4 +12,4 @@ pub use finding::{
     Confidence, EndpointParams, Finding, FindingKind, Origin, ScanResult, SecretContext,
 };
 pub use string_fold::collapsed_string;
-pub use url::maybe_url;
+pub use url::{maybe_url, resolved_maybe_url};

@@ -104,7 +104,12 @@ mod tests {
     #[test]
     fn broken_js_still_yields_path_findings() {
         let analyzer = Analyzer::new(BROKEN_JS, Some("broken.js"));
+        let findings = analyzer.collect_findings();
         let outcome = analyzer.parse_outcome();
+        let path_findings: Vec<_> = findings
+            .into_iter()
+            .filter(|f| f.kind == FindingKind::Path)
+            .collect();
 
         assert!(
             outcome.error_count > 0,
@@ -112,17 +117,34 @@ mod tests {
             outcome.error_count
         );
 
-        let findings = analyzer.collect_literal_paths();
         assert!(
-            !findings.is_empty(),
+            !path_findings.is_empty(),
             "expected at least one finding from broken.js despite syntax errors"
         );
 
         assert!(
-            findings.iter().any(|f| f.value == EXPECTED_PATH),
+            path_findings.iter().any(|f| f.value == EXPECTED_PATH),
             "expected path {EXPECTED_PATH:?}, got: {:?}",
-            findings.iter().map(|f| &f.value).collect::<Vec<_>>()
+            path_findings.iter().map(|f| &f.value).collect::<Vec<_>>()
         );
+    }
+
+    #[test]
+    fn sample_js_dynamic_fetch_no_endpoint() {
+        let analyzer = Analyzer::new(SAMPLE_JS, Some("sample.js"));
+        let endpoints: Vec<_> = analyzer
+            .collect_findings()
+            .into_iter()
+            .filter(|f| f.kind == FindingKind::Endpoint)
+            .collect();
+        assert!(
+            !endpoints.iter().any(|f| f.value.contains("EXPR")),
+            "dynamic fetch must not produce EXPR endpoint, got: {:?}",
+            endpoints.iter().map(|f| &f.value).collect::<Vec<_>>()
+        );
+        assert!(endpoints
+            .iter()
+            .any(|f| f.value == "https://cdn.example.com/app.js"));
     }
 
     #[test]
