@@ -89,9 +89,9 @@ mod tests {
             .filter(|f| f.kind == FindingKind::Endpoint)
             .collect::<Vec<_>>();
         assert_eq!(findings.len(), 2);
-        assert!(findings.iter().any(|f| {
-            f.value == "/api/v1/users" && f.method.as_deref() == Some("GET")
-        }));
+        assert!(findings
+            .iter()
+            .any(|f| { f.value == "/api/v1/users" && f.method.as_deref() == Some("GET") }));
         assert!(findings.iter().any(|f| {
             f.value.contains("api.example.com") && f.method.as_deref() == Some("POST")
         }));

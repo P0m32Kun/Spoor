@@ -19,14 +19,26 @@ cargo install --path crates/spoor-cli
 ## 用法
 
 ```bash
-spoor scan ./dist/app.js          # 扫描（当前 Phase 0：字符串字面量路径）
-spoor paths ./dist/               # 仅路径
-spoor apis ./bundle.js            # 接口（Phase 1+）
-spoor keys ./config.js            # 密钥（Phase 2+）
-cat page.js | spoor paths -        # 从 stdin 读取
-spoor scan ./dist -o out.json     # 写入文件
-spoor scan ./dist --jsonl         # 每行一个 finding
+spoor scan tests/fixtures/phase1/combined.js   # 路径 + API endpoint（Phase 1）
+spoor paths tests/fixtures/sample.js           # 仅 path finding
+spoor apis tests/fixtures/phase1/combined.js   # 仅 endpoint（fetch / location / XHR）
+spoor keys ./config.js                         # 密钥（Phase 2+）
+cat page.js | spoor paths -                    # 从 stdin 读取
+spoor scan ./dist -o out.json                  # 写入文件
+spoor scan ./dist --jsonl                      # 每行一个 finding
 ```
+
+### Phase 1 能力
+
+`spoor apis` 与 `spoor scan` 中的 endpoint 类 finding 已支持：
+
+- **fetch** — 首参为可折叠字面量 URL
+- **location** — `href`、`replace`、`assign` 及 `window.location = …`
+- **XMLHttpRequest** — `xhr.open(method, url)`
+
+验收 fixture：`tests/fixtures/phase1/combined.js`（同文件混合上述三种调用）。
+
+**限制**：动态拼接 URL（如 `fetch(base + "/path")`）在 Phase 1 可能折叠为 `EXPR` 占位符，不会产出可靠 endpoint；仅静态字面量或简单拼接会被识别。
 
 ## 输出模型
 
@@ -37,6 +49,7 @@ spoor scan ./dist --jsonl         # 每行一个 finding
 ```bash
 cargo test --workspace
 cargo run -p spoor-cli -- paths tests/fixtures/sample.js
+cargo run -p spoor-cli -- apis tests/fixtures/phase1/combined.js
 ```
 
 ## 路线图

@@ -148,9 +148,7 @@ mod tests {
                 && f.method.as_deref() == Some("GET")
         }));
         assert!(findings.iter().any(|f| {
-            f.value == "/dashboard"
-                && f.origin.pattern == "location"
-                && f.method.is_none()
+            f.value == "/dashboard" && f.origin.pattern == "location" && f.method.is_none()
         }));
     }
 }

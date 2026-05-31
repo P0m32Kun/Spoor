@@ -37,9 +37,6 @@ impl<'a> MatchContext<'a> {
     pub fn snippet(&self, offset: u32, max_len: usize) -> String {
         let start = offset as usize;
         let end = (start + max_len).min(self.source.len());
-        self.source
-            .get(start..end)
-            .unwrap_or("")
-            .replace('\n', " ")
+        self.source.get(start..end).unwrap_or("").replace('\n', " ")
     }
 }

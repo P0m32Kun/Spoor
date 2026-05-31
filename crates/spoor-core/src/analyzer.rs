@@ -54,15 +54,11 @@ impl<'a> Analyzer<'a> {
             error_count,
         });
 
-        let mut findings =
-            FetchMatcher::new(MatchContext::new(self.source)).collect(&ret.program);
-        findings.extend(
-            LocationMatcher::new(MatchContext::new(self.source)).collect(&ret.program),
-        );
+        let mut findings = FetchMatcher::new(MatchContext::new(self.source)).collect(&ret.program);
+        findings.extend(LocationMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
         findings.extend(XhrMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
-        findings.extend(
-            LiteralCollector::new(MatchContext::new(self.source)).collect(&ret.program),
-        );
+        findings
+            .extend(LiteralCollector::new(MatchContext::new(self.source)).collect(&ret.program));
         dedup_findings(findings)
     }
 
@@ -102,6 +98,7 @@ mod tests {
 
     const BROKEN_JS: &str = include_str!("../../../tests/fixtures/broken.js");
     const SAMPLE_JS: &str = include_str!("../../../tests/fixtures/sample.js");
+    const PHASE1_COMBINED_JS: &str = include_str!("../../../tests/fixtures/phase1/combined.js");
     const EXPECTED_PATH: &str = "/api/broken";
 
     #[test]
@@ -138,10 +135,56 @@ mod tests {
         assert_eq!(findings.len(), 2, "expected 2 path findings after dedup");
 
         let values: HashSet<_> = findings.iter().map(|f| f.value.as_str()).collect();
-        let expected = ["/api/v1", "/users"]
-            .into_iter()
-            .collect::<HashSet<_>>();
+        let expected = ["/api/v1", "/users"].into_iter().collect::<HashSet<_>>();
         assert_eq!(values, expected);
+    }
+
+    #[test]
+    fn phase1_combined_yields_endpoints() {
+        let analyzer = Analyzer::new(PHASE1_COMBINED_JS, Some("combined.js"));
+        let endpoints: Vec<_> = analyzer
+            .collect_findings()
+            .into_iter()
+            .filter(|f| f.kind == FindingKind::Endpoint)
+            .collect();
+
+        assert_eq!(
+            endpoints.len(),
+            7,
+            "expected 7 endpoint findings from combined.js, got: {:?}",
+            endpoints.iter().map(|f| &f.value).collect::<Vec<_>>()
+        );
+
+        let values: HashSet<_> = endpoints.iter().map(|f| f.value.as_str()).collect();
+        let expected = [
+            "/api/v1/users",
+            "https://api.example.com/data",
+            "https://cdn.example.com/app.js",
+            "/login",
+            "/dashboard",
+            "/api/v1/status",
+            "https://example.com/submit",
+        ]
+        .into_iter()
+        .collect::<HashSet<_>>();
+        assert_eq!(values, expected);
+
+        assert!(endpoints
+            .iter()
+            .any(|f| { f.value == "/api/v1/users" && f.method.as_deref() == Some("GET") }));
+        assert!(endpoints.iter().any(|f| {
+            f.value.contains("api.example.com") && f.method.as_deref() == Some("POST")
+        }));
+        assert!(endpoints.iter().any(|f| {
+            f.value == "/login"
+                && f.origin.pattern == "location.replace"
+                && f.method.as_deref() == Some("GET")
+        }));
+        assert!(endpoints.iter().any(|f| {
+            f.value == "/api/v1/status"
+                && f.origin.pattern == "xhr.open"
+                && f.method.as_deref() == Some("GET")
+        }));
     }
 
     #[test]

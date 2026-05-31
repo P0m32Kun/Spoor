@@ -88,9 +88,9 @@ mod tests {
             .filter(|f| f.kind == FindingKind::Endpoint && f.origin.pattern == "xhr.open")
             .collect::<Vec<_>>();
         assert_eq!(findings.len(), 2);
-        assert!(findings.iter().any(|f| {
-            f.value == "/api/v1/status" && f.method.as_deref() == Some("GET")
-        }));
+        assert!(findings
+            .iter()
+            .any(|f| { f.value == "/api/v1/status" && f.method.as_deref() == Some("GET") }));
         assert!(findings.iter().any(|f| {
             f.value == "https://example.com/submit" && f.method.as_deref() == Some("POST")
         }));

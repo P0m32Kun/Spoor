@@ -19,9 +19,7 @@ fn confidence_rank(confidence: Confidence) -> u8 {
 }
 
 fn origin_richness(origin: &Origin) -> u32 {
-    origin.snippet.is_some() as u32
-        + origin.line.is_some() as u32
-        + origin.column.is_some() as u32
+    origin.snippet.is_some() as u32 + origin.line.is_some() as u32 + origin.column.is_some() as u32
 }
 
 fn finding_priority(f: &Finding) -> (u8, u8, u8, u32) {
