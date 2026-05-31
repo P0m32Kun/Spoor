@@ -5,7 +5,7 @@ use oxc_parser::{ParseOptions, Parser};
 use oxc_span::SourceType;
 
 use crate::finding::{Finding, FindingKind};
-use crate::matcher::{FetchMatcher, LiteralCollector, LocationMatcher, MatchContext};
+use crate::matcher::{FetchMatcher, LiteralCollector, LocationMatcher, MatchContext, XhrMatcher};
 
 #[derive(Debug, Clone)]
 pub struct ParseOutcome {
@@ -58,6 +58,7 @@ impl<'a> Analyzer<'a> {
         findings.extend(
             LocationMatcher::new(MatchContext::new(self.source)).collect(&ret.program),
         );
+        findings.extend(XhrMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
         findings.extend(
             LiteralCollector::new(MatchContext::new(self.source)).collect(&ret.program),
         );

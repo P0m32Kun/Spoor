@@ -1,10 +1,12 @@
 mod fetch;
 mod literal;
 mod location;
+mod xhr;
 
 pub use fetch::FetchMatcher;
 pub use literal::LiteralCollector;
 pub use location::LocationMatcher;
+pub use xhr::XhrMatcher;
 
 pub struct MatchContext<'a> {
     pub source: &'a str,
