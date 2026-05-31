@@ -214,7 +214,7 @@ Spoor/
 **Files:**
 - Modify: `crates/spoor-core/src/string_fold.rs:68-82`
 
-- [ ] **Step 1:** 将 `fold_source` 测试 helper 改为解析完整语句，例如：
+- [x] **Step 1:** 将 `fold_source` 测试 helper 改为解析完整语句，例如：
 
 ```rust
 fn fold_source(source: &str) -> String {
@@ -225,15 +225,15 @@ fn fold_source(source: &str) -> String {
 
 或使用 `SourceType::unambiguous().with_module(false)` 解析 script 模式。
 
-- [ ] **Step 2:** 运行测试
+- [x] **Step 2:** 运行测试
 
 ```bash
 cargo test -p spoor-core string_fold -- --nocapture
 ```
 
-Expected: 4/4 PASS
+Expected: 4/4 PASS ✅ (2026-05-31)
 
-- [ ] **Step 3:** Commit
+- [x] **Step 3:** Commit（合并在 `3d64c50` feat commit）
 
 ```bash
 git add crates/spoor-core/src/string_fold.rs
@@ -247,52 +247,44 @@ git commit -m "test: fix fold_source helper for standalone literals"
 - Modify: `crates/spoor-core/src/analyzer.rs`（如需：确保 parse errors 不 panic）
 - Create: `crates/spoor-core/src/analyzer.rs` 内 `#[cfg(test)]` 模块
 
-- [ ] **Step 1:** 写 failing test — 对 broken fixture 调用 `collect_literal_paths()`，断言 `error_count > 0` 且仍返回 ≥1 finding
+- [x] **Step 1:** 写 failing test — 对 broken fixture 调用 `collect_literal_paths()`，断言 `error_count > 0` 且仍返回 ≥1 finding
 
-- [ ] **Step 2:** 运行确认行为（可能已 pass，补测试即绿）
+- [x] **Step 2:** 运行确认行为（可能已 pass，补测试即绿）
 
 ```bash
 cargo test -p spoor-core analyzer -- --nocapture
 ```
 
-- [ ] **Step 3:** Commit
+- [x] **Step 3:** Commit（合并在 `3d64c50`）
 
 ### Task 3: Analyzer 集成测试
 
 **Files:**
 - Modify: `crates/spoor-core/src/analyzer.rs`（`#[cfg(test)]`）
 
-- [ ] **Step 1:** 对 `tests/fixtures/sample.js` 写 test，断言 finding 数量与 value 集合
+- [x] **Step 1:** 对 `tests/fixtures/sample.js` 写 test，断言 finding 数量与 value 集合
 
-- [ ] **Step 2:** `cargo test -p spoor-core` — 全绿
+- [x] **Step 2:** `cargo test -p spoor-core` — 全绿（8/8）
 
-- [ ] **Step 3:** Commit
+- [x] **Step 3:** Commit（合并在 `3d64c50`）
 
 ### Task 4: Git 初始化与首次提交
 
 **Files:**
 - Ensure: `.gitignore` 含 `target/`
 
-- [ ] **Step 1:**
+- [x] **Step 1:** ✅ `3d64c50` on `main`, remote `git@github.com:P0m32Kun/Spoor.git`
 
-```bash
-cd /Users/kun/DEV/Spoor
-git init
-git remote add origin git@github.com:P0m32Kun/Spoor.git
-git add .
-git commit -m "feat: Spoor Phase 0 — workspace, literal path extraction"
-```
-
-- [ ] **Step 2:** `git status` → clean working tree
+- [x] **Step 2:** `git status` → clean working tree ✅
 
 ### Task 5: 更新 plan1 Phase 0 checklist
 
 **Files:**
 - Modify: `plan1.md:77-82` — 将已完成项 `[ ]` 改为 `[x]`，crate 名更新为 spoor-*
 
-- [ ] **Step 1:** 编辑 checklist 反映 spoor 命名与当前状态
+- [x] **Step 1:** 编辑 checklist 反映 spoor 命名与当前状态
 
-- [ ] **Step 2:** Commit
+- [x] **Step 2:** Commit `4cc0bbd`
 
 ---
 
@@ -300,10 +292,10 @@ git commit -m "feat: Spoor Phase 0 — workspace, literal path extraction"
 
 ### 7.1 Phase 0 完成定义（更新后）
 
-- [ ] §6 全部 Task 完成
-- [ ] `cargo test --workspace` → 0 failures
-- [ ] `cargo run -p spoor-cli -- paths tests/fixtures/sample.js` → 预期 JSON
-- [ ] Git 有 initial commit
+- [x] §6 全部 Task 完成（2026-05-31）
+- [x] `cargo test --workspace` → 0 failures（8/8 pass）
+- [x] `cargo run -p spoor-cli -- paths tests/fixtures/sample.js` → 3 path findings
+- [x] Git 有 initial commit（`3d64c50` + `4cc0bbd`）
 
 ### 7.2 Phase 1 下一步（不在本文档实施）
 
@@ -324,7 +316,7 @@ Phase 1 目标见 plan1 § Phase 1：fetch / location / XHR / jQuery matcher + `
 
 | 维度 | 评估 |
 |------|------|
-| **Phase 0 完成度** | **~85%** — 核心链路通，测试/git/签 off 条件未满足 |
+| **Phase 0 完成度** | **100%** — §6 Remediation 完成，已签 off（2026-05-31） |
 | **文档** | plan1/plan2 齐全；Superpowers 实施计划本文档补 retro；Phase 1 计划待写 |
 | **流程合规** | 上次开发未走 Superpowers；本次 retro 按 `writing-plans` + `verification-before-completion` 补文档 |
 | **可继续 Phase 1？** | **建议先完成 §6 Remediation（约 1–2 小时）**，再开 Phase 1 计划 |
