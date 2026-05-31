@@ -1,15 +1,11 @@
+use std::cell::OnceCell;
+
 use oxc_allocator::Allocator;
-use oxc_ast::ast::Expression;
-use oxc_ast_visit::{
-    walk::{walk_expression, walk_program},
-    Visit,
-};
 use oxc_parser::{ParseOptions, Parser};
 use oxc_span::SourceType;
 
-use crate::finding::{Confidence, Finding, FindingKind, Origin};
-use crate::string_fold::collapsed_string;
-use crate::url::maybe_url;
+use crate::finding::{Finding, FindingKind};
+use crate::matcher::{LiteralCollector, MatchContext};
 
 #[derive(Debug, Clone)]
 pub struct ParseOutcome {
@@ -22,123 +18,78 @@ pub struct Analyzer<'a> {
     source: &'a str,
     filename: String,
     allocator: Allocator,
-    outcome: ParseOutcome,
-}
-
-struct LiteralCollector<'a> {
-    source: &'a str,
-    findings: Vec<Finding>,
-}
-
-impl<'a> Visit<'a> for LiteralCollector<'a> {
-    fn visit_expression(&mut self, expr: &Expression<'a>) {
-        if let Expression::StringLiteral(lit) = expr {
-            let folded = collapsed_string(expr);
-            if maybe_url(&folded) {
-                let span = lit.span;
-                let (line, column) = offset_to_line_col(self.source, span.start);
-                self.findings.push(Finding {
-                    kind: FindingKind::Path,
-                    value: folded,
-                    confidence: Confidence::Low,
-                    origin: Origin {
-                        pattern: "string_literal".into(),
-                        snippet: Some(snippet_at_offset(self.source, span.start, 80)),
-                        line: Some(line),
-                        column: Some(column),
-                    },
-                    method: None,
-                    params: None,
-                    secret_type: None,
-                    severity: None,
-                    context: None,
-                    tags: vec!["literal".into()],
-                });
-            }
-        }
-        walk_expression(self, expr);
-    }
+    outcome: OnceCell<ParseOutcome>,
 }
 
 impl<'a> Analyzer<'a> {
     pub fn new(source: &'a str, filename: Option<&str>) -> Self {
-        let filename = filename.unwrap_or("<input>").to_string();
-        let allocator = Allocator::default();
-        let source_type = SourceType::from_path(&filename).unwrap_or(SourceType::mjs());
-        let ret = Parser::new(&allocator, source, source_type)
-            .with_options(ParseOptions {
-                allow_return_outside_function: true,
-                ..ParseOptions::default()
-            })
-            .parse();
-        let error_count = ret.errors.len();
-        let recovered = error_count > 0;
-        // Program is stored in allocator; we only need outcome metadata here for Phase 0.
-        let _program = &ret.program;
         Self {
             source,
-            filename,
-            allocator,
-            outcome: ParseOutcome {
-                recovered,
-                error_count,
-            },
+            filename: filename.unwrap_or("<input>").to_string(),
+            allocator: Allocator::default(),
+            outcome: OnceCell::new(),
         }
     }
 
     pub fn parse_outcome(&self) -> &ParseOutcome {
-        &self.outcome
+        self.outcome.get_or_init(|| self.parse_for_outcome())
     }
 
     pub fn filename(&self) -> &str {
         &self.filename
     }
 
-    /// Walk AST and return path findings from string literals (Phase 0 baseline).
-    pub fn collect_literal_paths(&self) -> Vec<Finding> {
-        let source_type = SourceType::from_path(&self.filename).unwrap_or(SourceType::mjs());
-        let ret = Parser::new(&self.allocator, self.source, source_type)
+    /// Walk AST and return all findings (Phase 1 Task 1: literal paths only).
+    pub fn collect_findings(&self) -> Vec<Finding> {
+        let ret = Parser::new(&self.allocator, self.source, self.source_type())
             .with_options(ParseOptions {
                 allow_return_outside_function: true,
                 ..ParseOptions::default()
             })
             .parse();
-        let program = &ret.program;
-        let mut visitor = LiteralCollector {
-            source: self.source,
-            findings: Vec::new(),
-        };
-        walk_program(&mut visitor, program);
-        visitor.findings
-    }
-}
+        let error_count = ret.errors.len();
+        let _ = self.outcome.get_or_init(|| ParseOutcome {
+            recovered: error_count > 0,
+            error_count,
+        });
 
-fn offset_to_line_col(source: &str, offset: u32) -> (u32, u32) {
-    let offset = offset as usize;
-    let mut line = 1u32;
-    let mut last_line_start = 0usize;
-    for (i, b) in source.bytes().enumerate() {
-        if i >= offset {
-            break;
-        }
-        if b == b'\n' {
-            line += 1;
-            last_line_start = i + 1;
+        let ctx = MatchContext::new(self.source);
+        LiteralCollector::new(ctx).collect(&ret.program)
+    }
+
+    /// Walk AST and return path findings from string literals (Phase 0 baseline).
+    pub fn collect_literal_paths(&self) -> Vec<Finding> {
+        self.collect_findings()
+            .into_iter()
+            .filter(|f| f.kind == FindingKind::Path)
+            .collect()
+    }
+
+    fn source_type(&self) -> SourceType {
+        SourceType::from_path(&self.filename).unwrap_or(SourceType::mjs())
+    }
+
+    fn parse_for_outcome(&self) -> ParseOutcome {
+        let ret = Parser::new(&self.allocator, self.source, self.source_type())
+            .with_options(ParseOptions {
+                allow_return_outside_function: true,
+                ..ParseOptions::default()
+            })
+            .parse();
+        let error_count = ret.errors.len();
+        ParseOutcome {
+            recovered: error_count > 0,
+            error_count,
         }
     }
-    let column = (offset.saturating_sub(last_line_start) + 1) as u32;
-    (line, column)
-}
-
-fn snippet_at_offset(source: &str, offset: u32, max_len: usize) -> String {
-    let start = offset as usize;
-    let end = (start + max_len).min(source.len());
-    source.get(start..end).unwrap_or("").replace('\n', " ")
 }
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+
     use super::*;
+    use crate::finding::FindingKind;
 
     const BROKEN_JS: &str = include_str!("../../../tests/fixtures/broken.js");
     const SAMPLE_JS: &str = include_str!("../../../tests/fixtures/sample.js");
@@ -175,11 +126,25 @@ mod tests {
 
         assert_eq!(findings.len(), 3, "expected exactly 3 path findings");
 
-        let values: std::collections::HashSet<_> =
-            findings.iter().map(|f| f.value.as_str()).collect();
+        let values: HashSet<_> = findings.iter().map(|f| f.value.as_str()).collect();
         let expected = ["/api/v1", "/users", "https://cdn.example.com/app.js"]
             .into_iter()
-            .collect::<std::collections::HashSet<_>>();
+            .collect::<HashSet<_>>();
         assert_eq!(values, expected);
+    }
+
+    #[test]
+    fn collect_findings_reuses_single_parse() {
+        let src = include_str!("../../../tests/fixtures/sample.js");
+        let a = Analyzer::new(src, Some("sample.js"));
+        let literals = a.collect_literal_paths();
+        let all = a.collect_findings();
+        let literal_values: HashSet<_> = literals.iter().map(|f| f.value.as_str()).collect();
+        let path_values: HashSet<_> = all
+            .iter()
+            .filter(|f| f.kind == FindingKind::Path)
+            .map(|f| f.value.as_str())
+            .collect();
+        assert_eq!(literal_values, path_values);
     }
 }

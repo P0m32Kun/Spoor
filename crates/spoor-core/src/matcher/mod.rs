@@ -1,0 +1,39 @@
+mod literal;
+
+pub use literal::LiteralCollector;
+
+pub struct MatchContext<'a> {
+    pub source: &'a str,
+}
+
+impl<'a> MatchContext<'a> {
+    pub fn new(source: &'a str) -> Self {
+        Self { source }
+    }
+
+    pub fn line_col(&self, offset: u32) -> (u32, u32) {
+        let offset = offset as usize;
+        let mut line = 1u32;
+        let mut last_line_start = 0usize;
+        for (i, b) in self.source.bytes().enumerate() {
+            if i >= offset {
+                break;
+            }
+            if b == b'\n' {
+                line += 1;
+                last_line_start = i + 1;
+            }
+        }
+        let column = (offset.saturating_sub(last_line_start) + 1) as u32;
+        (line, column)
+    }
+
+    pub fn snippet(&self, offset: u32, max_len: usize) -> String {
+        let start = offset as usize;
+        let end = (start + max_len).min(self.source.len());
+        self.source
+            .get(start..end)
+            .unwrap_or("")
+            .replace('\n', " ")
+    }
+}

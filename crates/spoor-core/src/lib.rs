@@ -2,6 +2,7 @@
 
 mod analyzer;
 mod finding;
+mod matcher;
 mod string_fold;
 mod url;
 
