@@ -81,4 +81,19 @@ impl Finding {
             tags: Vec::new(),
         }
     }
+
+    pub fn endpoint(value: impl Into<String>, method: impl Into<String>, origin: Origin) -> Self {
+        Self {
+            kind: FindingKind::Endpoint,
+            value: value.into(),
+            confidence: Confidence::High,
+            method: Some(method.into()),
+            origin,
+            params: None,
+            secret_type: None,
+            severity: None,
+            context: None,
+            tags: Vec::new(),
+        }
+    }
 }

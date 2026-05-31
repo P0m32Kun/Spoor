@@ -5,7 +5,7 @@ use oxc_parser::{ParseOptions, Parser};
 use oxc_span::SourceType;
 
 use crate::finding::{Finding, FindingKind};
-use crate::matcher::{LiteralCollector, MatchContext};
+use crate::matcher::{FetchMatcher, LiteralCollector, MatchContext};
 
 #[derive(Debug, Clone)]
 pub struct ParseOutcome {
@@ -53,8 +53,12 @@ impl<'a> Analyzer<'a> {
             error_count,
         });
 
-        let ctx = MatchContext::new(self.source);
-        LiteralCollector::new(ctx).collect(&ret.program)
+        let mut findings =
+            FetchMatcher::new(MatchContext::new(self.source)).collect(&ret.program);
+        findings.extend(
+            LiteralCollector::new(MatchContext::new(self.source)).collect(&ret.program),
+        );
+        findings
     }
 
     /// Walk AST and return path findings from string literals (Phase 0 baseline).

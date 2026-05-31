@@ -1,5 +1,7 @@
+mod fetch;
 mod literal;
 
+pub use fetch::FetchMatcher;
 pub use literal::LiteralCollector;
 
 pub struct MatchContext<'a> {
