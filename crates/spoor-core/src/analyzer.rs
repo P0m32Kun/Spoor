@@ -4,6 +4,7 @@ use oxc_allocator::Allocator;
 use oxc_parser::{ParseOptions, Parser};
 use oxc_span::SourceType;
 
+use crate::dedup::dedup_findings;
 use crate::finding::{Finding, FindingKind};
 use crate::matcher::{FetchMatcher, LiteralCollector, LocationMatcher, MatchContext, XhrMatcher};
 
@@ -62,7 +63,7 @@ impl<'a> Analyzer<'a> {
         findings.extend(
             LiteralCollector::new(MatchContext::new(self.source)).collect(&ret.program),
         );
-        findings
+        dedup_findings(findings)
     }
 
     /// Walk AST and return path findings from string literals (Phase 0 baseline).
@@ -132,10 +133,12 @@ mod tests {
         let analyzer = Analyzer::new(SAMPLE_JS, Some("sample.js"));
         let findings = analyzer.collect_literal_paths();
 
-        assert_eq!(findings.len(), 3, "expected exactly 3 path findings");
+        // `/users` from literal only — fetch(base + "/users") is dynamic in Phase 1.
+        // `https://cdn.example.com/app.js` dedupes to location.href endpoint.
+        assert_eq!(findings.len(), 2, "expected 2 path findings after dedup");
 
         let values: HashSet<_> = findings.iter().map(|f| f.value.as_str()).collect();
-        let expected = ["/api/v1", "/users", "https://cdn.example.com/app.js"]
+        let expected = ["/api/v1", "/users"]
             .into_iter()
             .collect::<HashSet<_>>();
         assert_eq!(values, expected);

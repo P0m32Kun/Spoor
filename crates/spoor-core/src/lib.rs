@@ -1,6 +1,7 @@
 //! Spoor core library — parse JS with Oxc and extract recon findings.
 
 mod analyzer;
+mod dedup;
 mod finding;
 mod matcher;
 mod string_fold;
