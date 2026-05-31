@@ -78,10 +78,10 @@ fn run_scan(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let (source, file_label) = read_input(&path)?;
     let analyzer = Analyzer::new(&source, Some(&file_label));
-    let mut findings = analyzer.collect_literal_paths();
+    let mut findings = analyzer.collect_findings();
     if let Some(kind) = kind_filter {
         findings.retain(|f| f.kind == kind);
-        if matches!(kind, FindingKind::Endpoint | FindingKind::Secret) && findings.is_empty() {
+        if matches!(kind, FindingKind::Secret) && findings.is_empty() {
             eprintln!("note: {kind:?} extraction is not implemented yet (Phase 1/2); no results");
         }
     }
