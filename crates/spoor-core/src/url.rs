@@ -54,6 +54,21 @@ pub fn resolved_maybe_url(s: &str) -> bool {
     !s.contains(EXPR_PLACEHOLDER) && maybe_url(s)
 }
 
+/// Extract query parameter names from a URL or path string (`?a=1&b=2` → `["a", "b"]`).
+pub fn query_param_names(url: &str) -> Vec<String> {
+    let Some(query_start) = url.find('?') else {
+        return Vec::new();
+    };
+    let query = &url[query_start + 1..];
+    let query = query.split('#').next().unwrap_or(query);
+    query
+        .split('&')
+        .filter_map(|pair| pair.split('=').next())
+        .filter(|key| !key.is_empty())
+        .map(|key| key.to_string())
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -79,5 +94,18 @@ mod tests {
         assert!(!resolved_maybe_url("EXPR/users"));
         assert!(!resolved_maybe_url("/api/EXPR"));
         assert!(resolved_maybe_url("/api/v1/users"));
+    }
+
+    #[test]
+    fn query_param_names_parses_keys() {
+        assert_eq!(
+            query_param_names("/api/users?id=1&sort=asc"),
+            vec!["id", "sort"]
+        );
+        assert_eq!(
+            query_param_names("https://x.com/a?token=abc#frag"),
+            vec!["token"]
+        );
+        assert!(query_param_names("/no/query").is_empty());
     }
 }

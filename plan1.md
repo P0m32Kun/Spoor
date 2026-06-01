@@ -4,7 +4,7 @@
 > **JSON 输出模型：** [plan2.md](./plan2.md)  
 > **仓库：** https://github.com/P0m32Kun/Spoor
 
-**最后更新：** 2026-05-31 · **版本：** 0.1.0 · **测试：** 19 passed
+**最后更新：** 2026-05-31 · **版本：** 0.1.0 · **测试：** 27 passed
 
 ---
 
@@ -27,8 +27,8 @@
 | 阶段 | 进度 | 状态 | 详细计划 |
 |------|------|------|----------|
 | Phase 0 | 100% | ✅ 已签 off | 下文 § Phase 0 |
-| Phase 1 | ~75% | ✅ 核心已签 off | 下文 § Phase 1 · [retro](./docs/superpowers/plans/2026-05-31-spoor-phase-1-retro.md) |
-| Phase 2 | 0% | 📋 未开始 | [plan3.md](./plan3.md) |
+| Phase 1 | 100% | ✅ 已签 off | 下文 § Phase 1 · [retro](./docs/superpowers/plans/2026-05-31-spoor-phase-1-retro.md) |
+| Phase 2 | ~40% | 🚧 进行中 | [plan3.md](./plan3.md) |
 | Phase 3 | 0% | 📋 未开始 | [plan4.md](./plan4.md) |
 | Phase 4 | 0% | 📋 按需 | [plan5.md](./plan5.md) |
 
@@ -46,6 +46,10 @@
 │ fetch    │ _fold    │ maybe_url│                        │
 │ location │          │          │                        │
 │ xhr      │          │          │                        │
+│ jquery   │          │          │                        │
+│ axios    │          │          │                        │
+│ window_open │       │          │                        │
+│ secret   │          │          │                        │
 │ literal  │          │          │                        │
 ├──────────┴──────────┴──────────┴────────────────────────┤
 │  Oxc Parser + ast_visit                                 │
@@ -54,7 +58,7 @@
 └─────────────────────────────────────────────────────────┘
 ```
 
-**当前 matcher 流水线：** fetch → location → xhr → literal → dedup
+**当前 matcher 流水线：** fetch → location → xhr → axios → jquery → window_open → secret → literal → dedup
 
 **Crate 布局（当前）：**
 
@@ -74,10 +78,10 @@ Spoor/
 
 | 命令 / 选项 | 当前 | 计划阶段 |
 |-------------|------|----------|
-| `spoor scan` | path + endpoint | + secret → Phase 2 |
+| `spoor scan` | path + endpoint + secret | — |
 | `spoor paths` | ✅ 字面量 path | — |
-| `spoor apis` | ✅ fetch/location/XHR | + axios 等 → Phase 2 |
-| `spoor keys` | ❌ 占位 | Phase 2 |
+| `spoor apis` | ✅ fetch/location/XHR/jquery/axios/window.open | + WebSocket 等 → Phase 2 |
+| `spoor keys` | ✅ AKIA / sk- / 对象键 | + GCP 等 → Phase 2 |
 | stdin `-` | ✅ | — |
 | `-o` / `--jsonl` | ✅ | — |
 | 目录递归 | ❌ 单文件 | Phase 3 |
@@ -90,7 +94,7 @@ Spoor/
 |------|------|------|
 | `path` | 站内路径、静态资源 | ✅ literal matcher |
 | `endpoint` | 可发起的 API（含 method） | ✅ 部分 matcher |
-| `secret` | 密钥 / 凭证 | ❌ Phase 2 |
+| `secret` | 密钥 / 凭证 | ✅ 基础（AKIA、sk-、对象键） |
 
 ---
 
@@ -111,36 +115,48 @@ Spoor/
 
 ---
 
-### Phase 1 — 语义 Endpoint ✅（核心）
+### Phase 1 — 语义 Endpoint ✅
 
-**交付：** `spoor apis` 输出 fetch / location / XHR endpoint；去重；CLI 接入。
+**交付：** `spoor apis` 输出 fetch / location / XHR / jQuery / window.open / axios endpoint；query_params；去重；CLI 接入。
 
 **Matcher：**
 
-- [x] fetch
+- [x] fetch（含 query_params）
 - [x] location（href / replace / assign / window.location）
-- [x] XHR `.open`（⚠️ 匹配偏宽，Phase 2 收紧）
+- [x] XHR `.open`（已收紧：仅 `new XMLHttpRequest()` 绑定变量）
+- [x] jQuery（`$.get` / `$.post` / `$.ajax`）
+- [x] window.open
+- [x] axios（get/post/request）
 - [x] string literal → path
-- [ ] jQuery → Phase 2
-- [ ] window.open → Phase 2
-- [ ] 泛化 call → Phase 2+
+- [ ] 泛化 call → Phase 2+（低优先级）
 
 **其它：**
 
 - [x] 过滤 data:/tel:/javascript:；fetch 拒绝 EXPR 动态 URL
+- [x] query_params 解析（`params.query`）
 - [x] 去重 Endpoint > Path
 - [x] CLI apis / scan / stdin
-- [ ] query_params 解析 → Phase 2
+- [x] jsluice 子集对比 fixture（`jsluice_subset.js`）
 - [ ] HTML `<script>` → Phase 3
-- [ ] jsluice 全量对比 fixture → Phase 2/3
 
 **回顾：** [Phase 1 retro](./docs/superpowers/plans/2026-05-31-spoor-phase-1-retro.md)
 
 ---
 
-### Phase 2 — 密钥与红队增强 📋
+### Phase 2 — 密钥与红队增强 🚧
 
-**交付：** `spoor keys` 可用；`spoor scan` 含 secret；更多 HTTP 客户端 matcher。
+**交付：** `spoor keys` 可用；`spoor scan` 含 secret；WebSocket/GraphQL 等。
+
+**进行中（plan3）：**
+
+- [x] AWS Access Key（AKIA）字符串检测
+- [x] sk- / GitHub token 粗匹配
+- [x] 对象键启发（apiKey、token…）
+- [x] axios + jQuery matcher（提前完成）
+- [x] XHR 收紧
+- [ ] GCP / Firebase
+- [ ] WebSocket / GraphQL / 路由
+- [ ] Phase 2 retro
 
 **详见 [plan3.md](./plan3.md)**
 
@@ -164,7 +180,7 @@ Spoor/
 
 | 类型 | 状态 | 目标阶段 |
 |------|------|----------|
-| 单元测试（core） | ✅ 19 tests | 持续 |
+| 单元测试（core） | ✅ 27 tests | 持续 |
 | matcher fixture | ✅ phase1/combined 等 | + jsluice 对比 |
 | CLI 快照测试 | ❌ | Phase 3 |
 | fmt / clippy | ✅ | CI → Phase 3 |
@@ -176,8 +192,8 @@ Spoor/
 
 1. 仅单文件，不支持目录递归
 2. 动态 URL `fetch(a + "/b")` 不产出 endpoint
-3. XHR 任意 `.open` 可能误报
-4. `spoor keys` 未实现
+3. ky / got / superagent 未覆盖
+4. GCP / Firebase secret 未实现
 5. 不支持 HTML 输入
 
 ---

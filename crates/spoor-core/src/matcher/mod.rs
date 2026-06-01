@@ -1,11 +1,20 @@
+mod axios;
 mod fetch;
+mod jquery;
 mod literal;
 mod location;
+mod secret;
+mod util;
+mod window_open;
 mod xhr;
 
+pub use axios::AxiosMatcher;
 pub use fetch::FetchMatcher;
+pub use jquery::JqueryMatcher;
 pub use literal::LiteralCollector;
 pub use location::LocationMatcher;
+pub use secret::SecretMatcher;
+pub use window_open::WindowOpenMatcher;
 pub use xhr::XhrMatcher;
 
 pub struct MatchContext<'a> {

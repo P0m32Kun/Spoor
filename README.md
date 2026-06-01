@@ -24,7 +24,7 @@ cargo install --path crates/spoor-cli
 spoor scan tests/fixtures/phase1/combined.js   # 路径 + API endpoint（Phase 1）
 spoor paths tests/fixtures/sample.js           # 仅 path finding
 spoor apis tests/fixtures/phase1/combined.js   # 仅 endpoint（fetch / location / XHR）
-spoor keys ./config.js                         # 密钥（Phase 2+）
+spoor keys tests/fixtures/secrets.js         # 密钥（AKIA、sk-、对象键）
 cat page.js | spoor paths -                    # 从 stdin 读取
 spoor scan ./dist -o out.json                  # 写入文件
 spoor scan ./dist --jsonl                      # 每行一个 finding
@@ -32,11 +32,16 @@ spoor scan ./dist --jsonl                      # 每行一个 finding
 
 ### Phase 1 能力
 
-`spoor apis` 与 `spoor scan` 中的 endpoint 类 finding 已支持：
+`spoor apis` 与 `spoor scan` 中的 endpoint 已支持：
 
-- **fetch** — 首参为可折叠字面量 URL
-- **location** — `href`、`replace`、`assign` 及 `window.location = …`
-- **XMLHttpRequest** — `xhr.open(method, url)`
+- **fetch**、**location**、**XMLHttpRequest.open**（已收紧）
+- **jQuery**（`$.get` / `$.post` / `$.ajax`）
+- **axios**、**window.open**
+
+`spoor keys` 与 `spoor scan` 中的 secret 已支持：
+
+- AWS Access Key（AKIA）、`sk-`、GitHub token 粗匹配
+- 对象字面量敏感键（`apiKey`、`token` 等）
 
 验收 fixture：`tests/fixtures/phase1/combined.js`（同文件混合上述三种调用）。
 

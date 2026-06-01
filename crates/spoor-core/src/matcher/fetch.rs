@@ -4,14 +4,12 @@ use oxc_ast_visit::{
     Visit,
 };
 
-use crate::finding::{Finding, Origin};
-use crate::matcher::MatchContext;
+use crate::matcher::{util::endpoint_from_url, MatchContext};
 use crate::string_fold::collapsed_string;
-use crate::url::resolved_maybe_url;
 
 pub struct FetchMatcher<'a> {
     ctx: MatchContext<'a>,
-    findings: Vec<Finding>,
+    findings: Vec<crate::finding::Finding>,
 }
 
 impl<'a> FetchMatcher<'a> {
@@ -22,7 +20,7 @@ impl<'a> FetchMatcher<'a> {
         }
     }
 
-    pub fn collect(mut self, program: &oxc_ast::ast::Program<'a>) -> Vec<Finding> {
+    pub fn collect(mut self, program: &oxc_ast::ast::Program<'a>) -> Vec<crate::finding::Finding> {
         walk_program(&mut self, program);
         self.findings
     }
@@ -34,17 +32,14 @@ impl<'a> Visit<'a> for FetchMatcher<'a> {
             if let Some(first) = call.arguments.first() {
                 if let Some(expr) = first.as_expression() {
                     let folded = collapsed_string(expr);
-                    if resolved_maybe_url(&folded) {
-                        let method = extract_method(&call.arguments);
-                        let (line, column) = self.ctx.line_col(call.span.start);
-                        let origin = Origin {
-                            pattern: "fetch".into(),
-                            snippet: Some(self.ctx.snippet(call.span.start, 80)),
-                            line: Some(line),
-                            column: Some(column),
-                        };
-                        self.findings
-                            .push(Finding::endpoint(folded, method, origin));
+                    if let Some(finding) = endpoint_from_url(
+                        &self.ctx,
+                        folded,
+                        extract_method(&call.arguments),
+                        "fetch",
+                        call.span.start,
+                    ) {
+                        self.findings.push(finding);
                     }
                 }
             }
@@ -89,9 +84,12 @@ mod tests {
             .filter(|f| f.kind == FindingKind::Endpoint)
             .collect::<Vec<_>>();
         assert_eq!(findings.len(), 2);
-        assert!(findings
-            .iter()
-            .any(|f| { f.value == "/api/v1/users" && f.method.as_deref() == Some("GET") }));
+        assert!(findings.iter().any(|f| {
+            f.value == "/api/v1/users?id=1&sort=asc"
+                && f.params
+                    .as_ref()
+                    .is_some_and(|p| p.query == vec!["id", "sort"])
+        }));
         assert!(findings.iter().any(|f| {
             f.value.contains("api.example.com") && f.method.as_deref() == Some("POST")
         }));

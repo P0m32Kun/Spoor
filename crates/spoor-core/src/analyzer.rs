@@ -6,7 +6,10 @@ use oxc_span::SourceType;
 
 use crate::dedup::dedup_findings;
 use crate::finding::{Finding, FindingKind};
-use crate::matcher::{FetchMatcher, LiteralCollector, LocationMatcher, MatchContext, XhrMatcher};
+use crate::matcher::{
+    AxiosMatcher, FetchMatcher, JqueryMatcher, LiteralCollector, LocationMatcher, MatchContext,
+    SecretMatcher, WindowOpenMatcher, XhrMatcher,
+};
 
 #[derive(Debug, Clone)]
 pub struct ParseOutcome {
@@ -54,9 +57,15 @@ impl<'a> Analyzer<'a> {
             error_count,
         });
 
-        let mut findings = FetchMatcher::new(MatchContext::new(self.source)).collect(&ret.program);
+        let ctx = MatchContext::new(self.source);
+        let mut findings = FetchMatcher::new(ctx).collect(&ret.program);
         findings.extend(LocationMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
         findings.extend(XhrMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
+        findings.extend(AxiosMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
+        findings.extend(JqueryMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
+        findings
+            .extend(WindowOpenMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
+        findings.extend(SecretMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
         findings
             .extend(LiteralCollector::new(MatchContext::new(self.source)).collect(&ret.program));
         dedup_findings(findings)
@@ -207,6 +216,26 @@ mod tests {
                 && f.origin.pattern == "xhr.open"
                 && f.method.as_deref() == Some("GET")
         }));
+    }
+
+    #[test]
+    fn jsluice_subset_endpoint_values() {
+        let src = include_str!("../../../tests/fixtures/jsluice_subset.js");
+        let endpoints: HashSet<_> = Analyzer::new(src, Some("jsluice_subset.js"))
+            .collect_findings()
+            .into_iter()
+            .filter(|f| f.kind == FindingKind::Endpoint)
+            .map(|f| f.value)
+            .collect();
+        for expected in [
+            "https://api.example.com/v1/items",
+            "/api/status",
+            "https://cdn.example.com/app.js",
+            "/api/jquery",
+            "/popup",
+        ] {
+            assert!(endpoints.contains(expected), "missing endpoint {expected}");
+        }
     }
 
     #[test]

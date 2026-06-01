@@ -96,4 +96,24 @@ impl Finding {
             tags: Vec::new(),
         }
     }
+
+    pub fn secret(
+        value: impl Into<String>,
+        secret_type: impl Into<String>,
+        severity: impl Into<String>,
+        origin: Origin,
+    ) -> Self {
+        Self {
+            kind: FindingKind::Secret,
+            value: value.into(),
+            confidence: Confidence::High,
+            origin,
+            method: None,
+            params: None,
+            secret_type: Some(secret_type.into()),
+            severity: Some(severity.into()),
+            context: None,
+            tags: Vec::new(),
+        }
+    }
 }

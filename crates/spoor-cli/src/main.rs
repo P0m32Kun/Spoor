@@ -81,9 +81,6 @@ fn run_scan(
     let mut findings = analyzer.collect_findings();
     if let Some(kind) = kind_filter {
         findings.retain(|f| f.kind == kind);
-        if matches!(kind, FindingKind::Secret) && findings.is_empty() {
-            eprintln!("note: {kind:?} extraction is not implemented yet (Phase 1/2); no results");
-        }
     }
     let result = ScanResult {
         file: file_label,
