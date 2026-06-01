@@ -2,7 +2,7 @@
 
 > **上级：** [plan1.md](./plan1.md) § Phase 2  
 > **前置：** Phase 0、Phase 1 已签 off  
-> **预估：** 约 2 周 · **当前进度：** ~55%
+> **预估：** 约 2 周 · **当前进度：** ~70%
 
 **Goal：** `spoor keys` 有真实输出；`spoor scan` 一次产出 path + endpoint + secret；补齐现代前端 HTTP 客户端与路由类 URL。
 
@@ -14,7 +14,7 @@
 - [x] `spoor scan` 三类 finding 同屏输出
 - [x] 至少新增 axios + jQuery matcher
 - [x] XHR matcher 收紧（减少任意 `.open` 误报）
-- [x] `cargo test --workspace` 全绿（30 passed）
+- [x] `cargo test --workspace` 全绿（32 passed）
 
 ---
 
@@ -36,11 +36,12 @@
 
 ---
 
-## Task B：云厂商与扩展 Secret（对标 jsluice）
+## Task B：云厂商与扩展 Secret（对标 jsluice）✅（基础）
 
-- [ ] GCP 凭证模式
-- [ ] Firebase 配置
-- [ ] GitHub PAT / fine-grained token 细粒度匹配
+- [x] GCP API Key（`AIza…` 39 字符）
+- [x] GCP Service Account（`type: service_account` + `private_key`）
+- [x] Firebase 配置（`projectId` + `authDomain` + `apiKey`）
+- [x] GitHub PAT / fine-grained token 粗匹配（Task A 已有）
 - [ ] （可选）`REACT_APP_*` / `VITE_*` / `process.env.X` 字符串
 
 ---
@@ -62,11 +63,11 @@
 
 ---
 
-## Task D：协议与路由类 URL（部分完成）
+## Task D：协议与路由类 URL（大部分完成）
 
 - [x] WebSocket：`new WebSocket(url)`
 - [x] GraphQL：`` gql`...` `` 提示 + `graphql(url, …)` 请求
-- [ ] react-router / vue-router path 字符串（高价值 path finding）
+- [x] react-router / vue-router path 字符串（`router.path`）
 - [x] `//# sourceMappingURL=` 提取
 
 ---

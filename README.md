@@ -42,8 +42,12 @@ spoor scan ./dist --jsonl                      # 每行一个 finding
 
 `spoor keys` 与 `spoor scan` 中的 secret 已支持：
 
-- AWS Access Key（AKIA）、`sk-`、GitHub token 粗匹配
+- AWS Access Key（AKIA）、GCP API Key（AIza…）
+- Firebase 配置、GCP Service Account 私钥
+- `sk-`、GitHub token 粗匹配
 - 对象字面量敏感键（`apiKey`、`token` 等）
+
+路由 path（react-router / vue-router）通过 `router.path` 产出高置信度 path finding。
 
 验收 fixture：`tests/fixtures/phase1/combined.js`（同文件混合上述三种调用）。
 

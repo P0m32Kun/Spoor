@@ -8,7 +8,8 @@ use crate::dedup::dedup_findings;
 use crate::finding::{Finding, FindingKind};
 use crate::matcher::{
     AxiosMatcher, FetchMatcher, GraphqlMatcher, JqueryMatcher, LiteralCollector, LocationMatcher,
-    MatchContext, SecretMatcher, SourceMapMatcher, WebSocketMatcher, WindowOpenMatcher, XhrMatcher,
+    MatchContext, RouterMatcher, SecretMatcher, SourceMapMatcher, WebSocketMatcher,
+    WindowOpenMatcher, XhrMatcher,
 };
 
 #[derive(Debug, Clone)]
@@ -70,6 +71,7 @@ impl<'a> Analyzer<'a> {
         );
         findings
             .extend(GraphqlMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
+        findings.extend(RouterMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
         findings.extend(SecretMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
         findings.extend(
             SourceMapMatcher::new(MatchContext::new(self.source)).collect(&ret.program),

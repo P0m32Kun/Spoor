@@ -4,7 +4,7 @@
 > **JSON 输出模型：** [plan2.md](./plan2.md)  
 > **仓库：** https://github.com/P0m32Kun/Spoor
 
-**最后更新：** 2026-05-31 · **版本：** 0.1.0 · **测试：** 30 passed
+**最后更新：** 2026-05-31 · **版本：** 0.1.0 · **测试：** 32 passed
 
 ---
 
@@ -28,7 +28,7 @@
 |------|------|------|----------|
 | Phase 0 | 100% | ✅ 已签 off | 下文 § Phase 0 |
 | Phase 1 | 100% | ✅ 已签 off | 下文 § Phase 1 · [retro](./docs/superpowers/plans/2026-05-31-spoor-phase-1-retro.md) |
-| Phase 2 | ~55% | 🚧 进行中 | [plan3.md](./plan3.md) |
+| Phase 2 | ~70% | 🚧 进行中 | [plan3.md](./plan3.md) |
 | Phase 3 | 0% | 📋 未开始 | [plan4.md](./plan4.md) |
 | Phase 4 | 0% | 📋 按需 | [plan5.md](./plan5.md) |
 
@@ -155,8 +155,8 @@ Spoor/
 - [x] axios + jQuery matcher（提前完成）
 - [x] XHR 收紧
 - [ ] GCP / Firebase
-- [x] WebSocket / GraphQL / sourceMappingURL
-- [ ] react-router / vue-router
+- [x] GCP / Firebase / service account
+- [x] react-router / vue-router
 - [ ] Phase 2 retro
 
 **详见 [plan3.md](./plan3.md)**
@@ -181,7 +181,7 @@ Spoor/
 
 | 类型 | 状态 | 目标阶段 |
 |------|------|----------|
-| 单元测试（core） | ✅ 30 tests | 持续 |
+| 单元测试（core） | ✅ 32 tests | 持续 |
 | matcher fixture | ✅ phase1/combined 等 | + jsluice 对比 |
 | CLI 快照测试 | ❌ | Phase 3 |
 | fmt / clippy | ✅ | CI → Phase 3 |
@@ -194,7 +194,7 @@ Spoor/
 1. 仅单文件，不支持目录递归
 2. 动态 URL `fetch(a + "/b")` 不产出 endpoint
 3. ky / got / superagent 未覆盖
-4. GCP / Firebase secret 未实现
+4. env 变量字符串（REACT_APP_*）未实现
 5. 不支持 HTML 输入
 
 ---

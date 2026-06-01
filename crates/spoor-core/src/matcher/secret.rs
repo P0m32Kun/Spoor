@@ -1,4 +1,4 @@
-use oxc_ast::ast::{Expression, ObjectPropertyKind, PropertyKey, StringLiteral};
+use oxc_ast::ast::{Expression, ObjectExpression, ObjectPropertyKind, PropertyKey, StringLiteral};
 use oxc_ast_visit::{
     walk::{walk_expression, walk_program},
     Visit,
@@ -8,6 +8,10 @@ use crate::finding::{Finding, Origin, SecretContext};
 use crate::matcher::MatchContext;
 
 const AWS_KEY_PREFIX: &str = "AKIA";
+const GCP_API_KEY_PREFIX: &str = "AIza";
+const GCP_API_KEY_LEN: usize = 39;
+const PEM_PRIVATE_KEY: &str = "-----BEGIN PRIVATE KEY-----";
+const PEM_RSA_PRIVATE_KEY: &str = "-----BEGIN RSA PRIVATE KEY-----";
 
 pub struct SecretMatcher<'a> {
     ctx: MatchContext<'a>,
@@ -57,38 +61,75 @@ impl<'a> Visit<'a> for SecretMatcher<'a> {
             check_string_literal(self, lit);
         }
         if let Expression::ObjectExpression(obj) = expr {
-            for prop in &obj.properties {
-                let ObjectPropertyKind::ObjectProperty(p) = prop else {
-                    continue;
-                };
-                let Some(key) = property_key_name(&p.key) else {
-                    continue;
-                };
-                if let Expression::StringLiteral(lit) = &p.value {
-                    if is_sensitive_object_key(key) {
-                        self.push_secret(
-                            lit.value.as_str().to_string(),
-                            "object_literal_key",
-                            "medium",
-                            "object_literal",
-                            p.span.start,
-                            vec![key.to_string()],
-                        );
-                    }
-                    if looks_like_aws_access_key(lit.value.as_str()) {
-                        self.push_secret(
-                            lit.value.as_str().to_string(),
-                            "aws_access_key",
-                            "critical",
-                            "string_literal",
-                            lit.span.start,
-                            vec![key.to_string()],
-                        );
-                    }
-                }
-            }
+            check_object_expression(self, obj);
         }
         walk_expression(self, expr);
+    }
+}
+
+fn check_object_expression(matcher: &mut SecretMatcher<'_>, obj: &ObjectExpression<'_>) {
+    let props = collect_string_props(obj);
+    if is_firebase_config(&props) {
+        if let Some(api_key) = props.get("apiKey").copied() {
+            matcher.push_secret(
+                api_key.to_string(),
+                "firebase_api_key",
+                "critical",
+                "firebase_config",
+                obj.span.start,
+                vec!["apiKey".into(), "projectId".into()],
+            );
+        }
+    }
+    if props.get("type") == Some(&"service_account") {
+        if let Some(private_key) = props.get("private_key").copied() {
+            matcher.push_secret(
+                private_key.to_string(),
+                "gcp_service_account_key",
+                "critical",
+                "gcp_service_account",
+                obj.span.start,
+                vec!["private_key".into(), "type".into()],
+            );
+        }
+    }
+
+    for prop in &obj.properties {
+        let ObjectPropertyKind::ObjectProperty(p) = prop else {
+            continue;
+        };
+        let Some(key) = property_key_name(&p.key) else {
+            continue;
+        };
+        if let Expression::StringLiteral(lit) = &p.value {
+            let value = lit.value.as_str();
+            if is_firebase_config(&props) && key == "apiKey" {
+                continue;
+            }
+            if props.get("type") == Some(&"service_account") && key == "private_key" {
+                continue;
+            }
+            if is_sensitive_object_key(key) {
+                matcher.push_secret(
+                    value.to_string(),
+                    "object_literal_key",
+                    "medium",
+                    "object_literal",
+                    p.span.start,
+                    vec![key.to_string()],
+                );
+            }
+            if looks_like_aws_access_key(value) {
+                matcher.push_secret(
+                    value.to_string(),
+                    "aws_access_key",
+                    "critical",
+                    "string_literal",
+                    lit.span.start,
+                    vec![key.to_string()],
+                );
+            }
+        }
     }
 }
 
@@ -98,6 +139,24 @@ fn check_string_literal(matcher: &mut SecretMatcher<'_>, lit: &StringLiteral<'_>
         matcher.push_secret(
             value.to_string(),
             "aws_access_key",
+            "critical",
+            "string_literal",
+            lit.span.start,
+            Vec::new(),
+        );
+    } else if looks_like_gcp_api_key(value) {
+        matcher.push_secret(
+            value.to_string(),
+            "gcp_api_key",
+            "high",
+            "string_literal",
+            lit.span.start,
+            Vec::new(),
+        );
+    } else if looks_like_private_key_pem(value) {
+        matcher.push_secret(
+            value.to_string(),
+            "gcp_private_key",
             "critical",
             "string_literal",
             lit.span.start,
@@ -124,12 +183,47 @@ fn check_string_literal(matcher: &mut SecretMatcher<'_>, lit: &StringLiteral<'_>
     }
 }
 
+fn collect_string_props<'a>(obj: &'a ObjectExpression<'a>) -> std::collections::HashMap<&'a str, &'a str> {
+    let mut map = std::collections::HashMap::new();
+    for prop in &obj.properties {
+        let ObjectPropertyKind::ObjectProperty(p) = prop else {
+            continue;
+        };
+        let Some(key) = property_key_name(&p.key) else {
+            continue;
+        };
+        if let Expression::StringLiteral(lit) = &p.value {
+            map.insert(key, lit.value.as_str());
+        }
+    }
+    map
+}
+
+fn is_firebase_config(props: &std::collections::HashMap<&str, &str>) -> bool {
+    props.contains_key("projectId")
+        && props.contains_key("authDomain")
+        && props.contains_key("apiKey")
+}
+
 fn looks_like_aws_access_key(value: &str) -> bool {
     value.starts_with(AWS_KEY_PREFIX)
         && value.len() == 20
         && value
             .bytes()
             .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit())
+}
+
+fn looks_like_gcp_api_key(value: &str) -> bool {
+    value.starts_with(GCP_API_KEY_PREFIX)
+        && value.len() == GCP_API_KEY_LEN
+        && value
+            .bytes()
+            .skip(GCP_API_KEY_PREFIX.len())
+            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+}
+
+fn looks_like_private_key_pem(value: &str) -> bool {
+    value.contains(PEM_PRIVATE_KEY) || value.contains(PEM_RSA_PRIVATE_KEY)
 }
 
 fn is_sensitive_object_key(key: &str) -> bool {
@@ -164,6 +258,20 @@ mod tests {
             .iter()
             .any(|f| f.secret_type.as_deref() == Some("aws_access_key")));
         assert!(secrets.iter().any(|f| f.value.starts_with("AKIA")));
+    }
+
+    #[test]
+    fn secret_matcher_finds_gcp_and_firebase() {
+        let src = include_str!("../../../../tests/fixtures/secrets.js");
+        let types: Vec<_> = Analyzer::new(src, Some("secrets.js"))
+            .collect_findings()
+            .into_iter()
+            .filter(|f| f.kind == FindingKind::Secret)
+            .filter_map(|f| f.secret_type)
+            .collect();
+        assert!(types.iter().any(|t| t == "gcp_api_key"));
+        assert!(types.iter().any(|t| t == "firebase_api_key"));
+        assert!(types.iter().any(|t| t == "gcp_service_account_key"));
     }
 
     #[test]
