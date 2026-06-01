@@ -79,6 +79,7 @@ Do not implement batching inside Spoor unless the user explicitly asks.
 - Optional `process.env` / build-time env string secrets
 - CI: test + fmt + clippy
 - Katana-sourced regression fixtures
+- **jsluice parity:** `cargo test -p spoor-core jsluice_parity` (needs `jsluice` in PATH; skips if absent)
 
 ## Red flags — stop and confirm with user
 

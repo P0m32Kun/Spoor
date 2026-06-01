@@ -144,7 +144,8 @@ for f in ./katana-out/*.js; do spoor scan "$f" --jsonl >> all-findings.jsonl; do
 |----|--------|------|
 | 统一 `resolved_maybe_url` | 中 | 减少 EXPR 误报 |
 | `process.env` / 构建 env 字符串 | 低 | 仍属 secret 提取 |
-| Katana 真实 bundle fixture | 低 | 回归误报/漏报 |
+| Katana bundle 回归 fixture | 低 | `tests/fixtures/katana/` + `katana_regression` |
+| jsluice parity 测试 | ✅ | `jsluice_parity`（需本地 jsluice） |
 | CI（test + fmt + clippy） | 低 | 质量门禁 |
 | CLI JSON 快照（insta） | 低 | 可选 |
 

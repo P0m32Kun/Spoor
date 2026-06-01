@@ -7,6 +7,11 @@ mod matcher;
 mod string_fold;
 mod url;
 
+#[cfg(test)]
+mod katana_regression;
+#[cfg(test)]
+mod jsluice_parity;
+
 pub use analyzer::{Analyzer, ParseOutcome};
 pub use finding::{
     Confidence, EndpointParams, Finding, FindingKind, Origin, ScanResult, SecretContext,

@@ -60,6 +60,10 @@ spoor scan app.js --jsonl       # 行式 JSON，便于管道
 ```bash
 cargo test --workspace
 cargo run -p spoor-cli -- scan tests/fixtures/sample.js
+
+# jsluice 对标（需安装 jsluice；未安装则自动 skip）
+cargo test -p spoor-core jsluice_parity
+./tests/jsluice_parity.sh
 ```
 
 ## License
