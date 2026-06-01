@@ -1,0 +1,42 @@
+---
+description: Spoor product scope — Katana downstream JS analyzer; do not expand beyond path/endpoint/secret
+alwaysApply: true
+---
+
+# Spoor scope (do not expand)
+
+Spoor is **one step** in a toolchain, not a scanner platform:
+
+```
+Katana (crawl + extract JS) → Spoor (analyze one .js) → downstream (ffuf, manual, etc.)
+```
+
+## In scope (only these)
+
+- **Input:** a single JS/TS file, or stdin (`-`)
+- **Output:** JSON/JSONL with exactly three finding kinds:
+  - `path` — routes, literal paths, source maps
+  - `endpoint` — HTTP/WebSocket/GraphQL calls extractable from AST
+  - `secret` — credentials and sensitive strings in JS
+- **Implementation:** Oxc AST matchers in `crates/spoor-core/src/matcher/`
+- **Quality work:** fewer false positives, better matcher coverage **within JS semantics**
+
+## Out of scope (reject PRs / do not propose)
+
+- Directory recursion, `rayon` batch scan, `spoor scan ./dist/`
+- HTML parsing, `<script>` extraction, crawling, link discovery
+- YAML/custom rule engines, SARIF, WASM/NAPI/PyO3
+- New CLI “platform” flags unless they filter existing findings (`--jsonl` is fine)
+- Features that duplicate Katana or generic security platforms
+
+Batch = shell, not Spoor:
+
+```bash
+for f in ./katana-out/*.js; do spoor scan "$f" --jsonl >> out.jsonl; done
+```
+
+## When adding code
+
+- New matcher → must map to path, endpoint, or secret; add fixture + test
+- Do not revive archived plan4/plan5 items without explicit user request
+- Read `AGENTS.md` and `plan1.md` §1 before large changes

@@ -4,7 +4,7 @@
 
 **仓库**: [github.com/P0m32Kun/Spoor](https://github.com/P0m32Kun/Spoor)
 
-**文档：** [plan1 范围与进度](./plan1.md) · [JSON 模型](./plan2.md) · [进度快照](./docs/DEVELOPMENT.md) · [Phase 2 retro](./docs/superpowers/plans/2026-05-31-spoor-phase-2-retro.md)
+**文档：** [plan1 范围与进度](./plan1.md) · [JSON 模型](./plan2.md) · [Agent 指导](./AGENTS.md) · [进度快照](./docs/DEVELOPMENT.md)
 
 ## 工具链位置
 
