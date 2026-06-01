@@ -1,6 +1,9 @@
-# 项目命名方案
+# Spoor 命名与 JSON 输出模型
 
-结合你的目标（**路径 / API 接口 / 敏感 Key 泄漏**）和红队使用场景，下面是一套重新设计的命名与输出模型，不绑定 [jsluice](https://github.com/BishopFox/jsluice)。
+> **总体计划：** [plan1.md](./plan1.md) · **进度快照：** [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md)  
+> **已定名：** Spoor · **仓库：** https://github.com/P0m32Kun/Spoor
+
+以下为命名决策记录与 **plan2 JSON 模型**（当前 CLI 输出格式）。
 
 ---
 

@@ -1,210 +1,202 @@
-# js-rs 开发计划
+# Spoor 总体开发计划
 
-对标 [jsluice](https://github.com/BishopFox/jsluice)（Go + tree-sitter，约 3 年未大更新），在 Rust 里做一套**更快、可扩展、面向红队信息收集**的 JavaScript 静态分析工具。仓库 `js-rs` 目前只有空的 Cargo 骨架，适合按下面计划推进。
+> **进度快照入口：** [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md)  
+> **JSON 输出模型：** [plan2.md](./plan2.md)  
+> **仓库：** https://github.com/P0m32Kun/Spoor
+
+**最后更新：** 2026-05-31 · **版本：** 0.1.0 · **测试：** 19 passed
 
 ---
 
 ## 一、目标与定位
 
-| 维度 | jsluice | js-rs 目标 |
+| 维度 | jsluice | Spoor 目标 |
 |------|---------|------------|
 | 解析 | go-tree-sitter | **Oxc**（高性能 AST，持续维护） |
-| 场景 | 通用安全扫描 | **红队收参**：端点、路径、密钥、配置、GraphQL/WebSocket 等 |
-| 输出 | JSON | JSON / JSONL + 可选 SARIF，便于接 ffuf、nuclei、自定义 pipeline |
-| 扩展 | Go 回调 matcher | **Rust trait + 可选 YAML/TOML 规则** |
-| 性能 | 单文件尚可 | **并行批处理**、大 bundle / 目录扫描 |
+| 场景 | 通用安全扫描 | **红队收参**：path、endpoint、secret |
+| 输出 | JSON | JSON / JSONL（plan2 三类 `kind`） |
+| 扩展 | Go 回调 | Rust matcher 模块 + Phase 3 YAML 规则 |
+| 性能 | 单文件尚可 | Phase 3 并行目录扫描 |
 
-**核心原则**：先做到 jsluice 能力对等且更稳，再在红队场景上明显超出（而不是一上来就堆功能）。
+**核心原则：** 先对齐 jsluice 核心能力，再在红队场景超出（axios、GraphQL、规则热更新等）。
 
 ---
 
-## 二、技术选型（建议）
+## 二、整体进度
+
+| 阶段 | 进度 | 状态 | 详细计划 |
+|------|------|------|----------|
+| Phase 0 | 100% | ✅ 已签 off | 下文 § Phase 0 |
+| Phase 1 | ~75% | ✅ 核心已签 off | 下文 § Phase 1 · [retro](./docs/superpowers/plans/2026-05-31-spoor-phase-1-retro.md) |
+| Phase 2 | 0% | 📋 未开始 | [plan3.md](./plan3.md) |
+| Phase 3 | 0% | 📋 未开始 | [plan4.md](./plan4.md) |
+| Phase 4 | 0% | 📋 按需 | [plan5.md](./plan5.md) |
+
+---
+
+## 三、技术架构
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  CLI (clap)          │  批处理 / 管道 / 目录递归        │
+│  spoor-cli (clap)    scan / paths / apis / keys         │
 ├─────────────────────────────────────────────────────────┤
-│  js-rs-core          │  Analyzer、Matcher、Findings     │
+│  spoor-core          Analyzer · MatchContext · dedup    │
 ├──────────┬──────────┬──────────┬────────────────────────┤
-│ extract  │ secrets  │ strings  │ html (内联 script)     │
+│ matcher/ │ string   │ url      │ finding (plan2 JSON)   │
+│ fetch    │ _fold    │ maybe_url│                        │
+│ location │          │          │                        │
+│ xhr      │          │          │                        │
+│ literal  │          │          │                        │
 ├──────────┴──────────┴──────────┴────────────────────────┤
-│  Oxc Parser + ast_visit  │  可选：regex 兜底（minified）│
+│  Oxc Parser + ast_visit                                 │
 ├─────────────────────────────────────────────────────────┤
-│  url crate / regex / serde / rayon                      │
+│  Phase 3+: rayon · scraper(HTML) · rules/*.yaml         │
 └─────────────────────────────────────────────────────────┘
 ```
 
-| 组件 | 选择 | 理由 |
+**当前 matcher 流水线：** fetch → location → xhr → literal → dedup
+
+**Crate 布局（当前）：**
+
+```
+Spoor/
+├── crates/spoor-core/
+├── crates/spoor-cli/
+├── tests/fixtures/
+└── docs/
+```
+
+---
+
+## 四、功能矩阵
+
+### 4.1 CLI
+
+| 命令 / 选项 | 当前 | 计划阶段 |
+|-------------|------|----------|
+| `spoor scan` | path + endpoint | + secret → Phase 2 |
+| `spoor paths` | ✅ 字面量 path | — |
+| `spoor apis` | ✅ fetch/location/XHR | + axios 等 → Phase 2 |
+| `spoor keys` | ❌ 占位 | Phase 2 |
+| stdin `-` | ✅ | — |
+| `-o` / `--jsonl` | ✅ | — |
+| 目录递归 | ❌ 单文件 | Phase 3 |
+| `--no-literals` | ❌ | Phase 3 |
+| `--min-severity` | ❌ | Phase 3 |
+
+### 4.2 三类 Finding（plan2）
+
+| kind | 用途 | 当前 |
 |------|------|------|
-| JS 解析 | `oxc_parser` + `oxc_ast` + `oxc_ast_visit` | 比 tree-sitter 更适合语义遍历；TS/JSX 支持好；生态活跃 |
-| 并行 | `rayon` | 目录 / 多文件扫描 |
-| CLI | `clap` + `serde_json` | 与 jsluice CLI 习惯对齐 |
-| HTML | `scraper` 或 `lol_html` | 抽 `<script>` 内联 JS（对标 jsluice） |
-| 规则 | 内置 + 后续 `rules/*.yaml` | 红队可自定义 matcher，无需改代码 |
-
-**暂不引入**：完整语义分析（`oxc_semantic`）、反混淆、动态执行——放到后期可选模块。
+| `path` | 站内路径、静态资源 | ✅ literal matcher |
+| `endpoint` | 可发起的 API（含 method） | ✅ 部分 matcher |
+| `secret` | 密钥 / 凭证 | ❌ Phase 2 |
 
 ---
 
-## 三、模块划分
+## 五、分阶段里程碑
 
-```
-js-rs/
-├── crates/
-│   ├── js-rs-core/      # 库：Analyzer、类型、Matcher trait
-│   ├── js-rs-extract/   # URL / 路径 / 端点
-│   ├── js-rs-secrets/   # 密钥与敏感配置
-│   └── js-rs-cli/       # 二进制 js-rs
-├── rules/               # 可选：用户规则（Phase 3+）
-└── tests/fixtures/      # 从 jsluice / 真实 bundle 摘样例
-```
+### Phase 0 — 基础 ✅
 
-**核心类型（与 jsluice 对齐，便于迁移）**：
-
-- `Finding::Url` — `url`, `method`, `query_params`, `body_params`, `kind`（fetch / location / xhr…）, `source`, `file`
-- `Finding::Secret` — `kind`, `severity`, `data`, `context`
-- `Finding::String` — 高价值字符串（可选 Phase 2）
-- 字符串拼接折叠：未知表达式 → `EXPR`（与 jsluice 一致，便于爬取与 fuzz）
-
----
-
-## 四、分阶段里程碑
-
-### Phase 0 — 基础（约 1 周）
-
-**交付**：能解析 JS，跑通一条最小链路。
+**交付：** 能解析 JS，从字面量提取 path。
 
 - [x] Workspace：`spoor-core` + `spoor-cli`
-- [x] `Analyzer::new(source)` → Oxc 解析，错误可恢复（坏 JS 仍尽量出结果）
-- [x] AST 遍历骨架（`Visit`）
-- [x] `collapsed_string()`：字面量拼接 + `EXPR` 占位
-- [x] `maybe_url()` 启发式（移植 jsluice 逻辑）
-- [x] 单元测试：拼接、`EXPR`、单字面量（转义字符串测试已替换）
+- [x] `Analyzer` + Oxc 解析，坏 JS 可部分恢复
+- [x] AST `Visit` 骨架
+- [x] `collapsed_string()` + `EXPR`
+- [x] `maybe_url()` 启发式
+- [x] 单元测试 + fixture
 
-### Phase 1 — URL 提取对标 jsluice（约 2 周）
-
-**交付**：`spoor apis file.js` 输出语义级 `endpoint` finding（plan2 JSON 模型）。
-
-内置 matcher（优先级从高到低）：
-
-| Matcher | 触发模式 | Phase 1 状态 |
-|---------|----------|--------------|
-| fetch | `fetch(url, init)` | ✅ `matcher/fetch.rs` |
-| location | `location` / `.href` 赋值 | ✅ |
-| location.replace | `location.replace(...)` | ✅ |
-| XHR | `.open(method, url)` | ⚠️ 已实现，匹配较宽 |
-| string literal | 兜底 path | ✅ + 去重 |
-| jQuery | `$.get/post/ajax` | ❌ Phase 2+ |
-| window.open | `window.open` / `open` | ❌ Phase 2+ |
-| 泛化 call | 首参像 URL 的任意调用 | ❌ Phase 2+ |
-
-其它：
-
-- [x] 过滤 `data:` / `tel:` / `javascript:`（`maybe_url`）；fetch 侧拒绝含 `EXPR` 的动态 URL
-- [ ] 从 URL 解析 `query_params`
-- [x] 去重（Endpoint > Path）
-- [ ] HTML 输入：抽 `<script>` 再分析
-- [x] CLI：`spoor apis` / `spoor scan` / stdin / 单文件
-
-**验收**：`tests/fixtures/phase1/combined.js` + 单 matcher fixture；jsluice 集合对比留 Phase 1.5。
-
-回顾文档：[docs/superpowers/plans/2026-05-31-spoor-phase-1-retro.md](./docs/superpowers/plans/2026-05-31-spoor-phase-1-retro.md)
-
-### Phase 2 — 密钥与红队增强（约 2 周）
-
-**交付**：`js-rs secrets`、`js-rs scan`（URL + secrets 一次跑完）。
-
-**Secrets（移植并扩展）**：
-
-- [ ] AWS / GCP / GitHub / Firebase（对标 jsluice）
-- [ ] 常见 API Key 模式（Bearer、sk-、AKIA 等）
-- [ ] 对象键启发：`apiKey`、`secret`、`token`、`password`（可控 FP，默认保守）
-- [ ] `REACT_APP_*`、`VITE_*`、`process.env` 相关（可选，带 severity）
-
-**红队向 URL/端点增强**：
-
-- [ ] `axios` / `ky` / `got` / `superagent`
-- [ ] WebSocket：`new WebSocket(...)`
-- [ ] GraphQL：`/graphql`、`` gql`...` `` 粗匹配
-- [ ] 路由：`react-router`、`vue-router` path 字符串
-- [ ] Source map：`//# sourceMappingURL=`
-- [ ] 相对路径规范化辅助（为目录 fuzz 准备，不强制做完整 base URL 解析）
-
-### Phase 3 — 性能、规则与工程化（约 2 周）
-
-- [ ] 目录递归 + `rayon` 并行
-- [ ] 去重策略：同 URL 保留 `kind` 信息最丰富的一条
-- [ ] `Matcher` trait：`UrlMatcher` / `SecretMatcher` 可注册
-- [ ] 可选规则文件（YAML）：正则 + AST 查询描述（简化版）
-- [ ] 基准：对比 jsluice（同机 `hyperfine`），目标 **≥5×** 单文件、**≥10×** 千文件目录
-- [ ] README：安装、示例、与 Burp/ffuf 管道示例
-
-### Phase 4 — 可选高级能力（按需）
-
-- [ ] Minified / 语法错误严重：regex 二层兜底
-- [ ] Webpack chunk 名 / 动态 `import()` 路径
-- [ ] 与 `oxc_resolver` 做简单模块图（大型 SPA）
-- [ ] 输出 OpenAPI 粗猜测、SARIF
-- [ ] `wasm` / `napi` 供 Node/Python 调用
+**回顾：** [Phase 0 retro](./docs/superpowers/plans/2026-05-31-spoor-phase-0-retro.md)
 
 ---
 
-## 五、与 jsluice 的差异设计（红队价值）
+### Phase 1 — 语义 Endpoint ✅（核心）
 
-1. **更全的 HTTP 客户端**：现代前端很少只用裸 `fetch`，Phase 2 覆盖主流库。
-2. **可配置噪音**：`--min-severity`、`--no-literals`（只要语义 URL，不要纯字符串）。
-3. **管道友好**：`find . -name '*.js' | js-rs scan --jsonl`，每行一个 finding，便于 `jq`。
-4. **并行与规模**：整站 `assets/`、`.next/`、`dist/` 扫描是常态。
-5. **规则可热更新**：红队 IOC、内部域名模式不必发版。
+**交付：** `spoor apis` 输出 fetch / location / XHR endpoint；去重；CLI 接入。
+
+**Matcher：**
+
+- [x] fetch
+- [x] location（href / replace / assign / window.location）
+- [x] XHR `.open`（⚠️ 匹配偏宽，Phase 2 收紧）
+- [x] string literal → path
+- [ ] jQuery → Phase 2
+- [ ] window.open → Phase 2
+- [ ] 泛化 call → Phase 2+
+
+**其它：**
+
+- [x] 过滤 data:/tel:/javascript:；fetch 拒绝 EXPR 动态 URL
+- [x] 去重 Endpoint > Path
+- [x] CLI apis / scan / stdin
+- [ ] query_params 解析 → Phase 2
+- [ ] HTML `<script>` → Phase 3
+- [ ] jsluice 全量对比 fixture → Phase 2/3
+
+**回顾：** [Phase 1 retro](./docs/superpowers/plans/2026-05-31-spoor-phase-1-retro.md)
+
+---
+
+### Phase 2 — 密钥与红队增强 📋
+
+**交付：** `spoor keys` 可用；`spoor scan` 含 secret；更多 HTTP 客户端 matcher。
+
+**详见 [plan3.md](./plan3.md)**
+
+---
+
+### Phase 3 — 性能与工程化 📋
+
+**交付：** 目录并行扫描；YAML 规则；CLI 过滤；性能基准。
+
+**详见 [plan4.md](./plan4.md)**
+
+---
+
+### Phase 4 — 高级能力（按需）📋
+
+**详见 [plan5.md](./plan5.md)**
 
 ---
 
 ## 六、测试与质量
 
-| 类型 | 内容 |
+| 类型 | 状态 | 目标阶段 |
+|------|------|----------|
+| 单元测试（core） | ✅ 19 tests | 持续 |
+| matcher fixture | ✅ phase1/combined 等 | + jsluice 对比 |
+| CLI 快照测试 | ❌ | Phase 3 |
+| fmt / clippy | ✅ | CI → Phase 3 |
+| fuzz 不 panic | ❌ | Phase 4 |
+
+---
+
+## 七、已知限制
+
+1. 仅单文件，不支持目录递归
+2. 动态 URL `fetch(a + "/b")` 不产出 endpoint
+3. XHR 任意 `.open` 可能误报
+4. `spoor keys` 未实现
+5. 不支持 HTML 输入
+
+---
+
+## 八、文档索引
+
+| 文档 | 用途 |
 |------|------|
-| 单元测试 | `collapsed_string`、`maybe_url`、各 matcher 小片段 |
-| 快照测试 | CLI JSON 输出（`insta`） |
-| 对比测试 | 选 jsluice 仓库 `analyzer_test.go` 中可移植用例 |
-| 模糊测试（后期） | 随机 JS 片段，保证不 panic |
-| 真实样本 | 脱敏的 bundle、Vue/React 构建产物各 2～3 份 |
+| [plan1.md](./plan1.md) | 本文 — 总体计划与进度 |
+| [plan2.md](./plan2.md) | 命名 + JSON 模型 |
+| [plan3.md](./plan3.md) | Phase 2 详细计划 |
+| [plan4.md](./plan4.md) | Phase 3 详细计划 |
+| [plan5.md](./plan5.md) | Phase 4 详细计划 |
+| [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md) | 进度快照（与 plan 同步维护） |
 
 ---
 
-## 七、CLI 草案（与 jsluice 习惯兼容）
+## 九、建议执行顺序
 
-```bash
-js-rs urls app.js              # 仅 URL
-js-rs secrets bundle.js        # 仅密钥
-js-rs scan ./dist/             # 递归全量
-js-rs scan -j --min-severity medium ./  # JSONL
-cat page.html | js-rs urls -   # stdin
-```
-
----
-
-## 八、风险与对策
-
-| 风险 | 对策 |
-|------|------|
-| Oxc MSRV 较高（当前约 1.93+） | 文档写明；你本机 1.94 可满足 |
-| 误报（字符串字面量过多） | `MaybeURL` + matcher 优先级 + `--no-literals` |
-| 严重混淆 JS | Phase 4 regex 兜底；不承诺 100% |
-| 与 jsluice 输出不完全一致 | 以「集合等价 + 文档差异」为验收，不追求字节级相同 |
-
----
-
-## 九、建议的近期执行顺序
-
-1. **本周**：Phase 0 + Phase 1 的 `fetch` / `location` / `string` 三个 matcher + CLI `urls`
-2. **下周**：XHR、jQuery、secrets 移植 + `scan` 子命令
-3. **第三周**：红队增强 matcher + 并行目录扫描
-4. **第四周**：基准、README、规则文件雏形
-
----
-
-如果你认可这个方向，下一步可以从 **Phase 0 + Phase 1 的 workspace 骨架和 `fetch`/`location` matcher** 开始写代码；也可以先定几件事再动手：
-
-- 项目名用 `js-rs` 还是 `jsluice-rs` / 别的 CLI 名？
-- Phase 2 里你最想优先的红队能力（例如 axios、GraphQL、环境变量）？
-- 是否需要默认兼容 jsluice 的 JSON 字段名，方便你现有脚本直接替换？
+1. Phase 2：secrets → axios/jQuery → 收紧 XHR
+2. Phase 3：目录扫描 → YAML 规则 → 性能基准
+3. Phase 4：按需求选用

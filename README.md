@@ -4,6 +4,8 @@
 
 **仓库**: [github.com/P0m32Kun/Spoor](https://github.com/P0m32Kun/Spoor)
 
+**开发计划：** [plan1 总览](./plan1.md) · [Phase 2](./plan3.md) · [Phase 3](./plan4.md) · [Phase 4](./plan5.md) · [进度快照](./docs/DEVELOPMENT.md)
+
 ## 要求
 
 - Rust **1.93+**（推荐 1.94）
@@ -54,12 +56,7 @@ cargo run -p spoor-cli -- apis tests/fixtures/phase1/combined.js
 
 ## 路线图
 
-见 [plan1.md](./plan1.md)（阶段划分）与 [plan2.md](./plan2.md)（命名与 JSON 设计）。
-
-阶段回顾与完成度：
-
-- [Phase 0 retro](./docs/superpowers/plans/2026-05-31-spoor-phase-0-retro.md)
-- [Phase 1 retro](./docs/superpowers/plans/2026-05-31-spoor-phase-1-retro.md)
+见 [plan1.md](./plan1.md)（总览）与 [plan2.md](./plan2.md)（JSON 设计）。Phase 2–4 见 [plan3](./plan3.md) / [plan4](./plan4.md) / [plan5](./plan5.md)。
 
 ## License
 
