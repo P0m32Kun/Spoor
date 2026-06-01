@@ -79,11 +79,12 @@ jobs:
 
       - name: Package (Windows)
         if: matrix.archive == 'zip'
-        shell: bash
+        shell: pwsh
         run: |
-          cp target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}.exe ./${{ env.BINARY_NAME }}.exe
-          zip -j ${{ matrix.asset_name }}.zip ${{ env.BINARY_NAME }}.exe
-          sha256sum ${{ matrix.asset_name }}.zip > ${{ matrix.asset_name }}.zip.sha256
+          Copy-Item "target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}.exe" "./${{ env.BINARY_NAME }}.exe"
+          Compress-Archive -Path "${{ env.BINARY_NAME }}.exe" -DestinationPath "${{ matrix.asset_name }}.zip" -Force
+          $hash = (Get-FileHash "${{ matrix.asset_name }}.zip" -Algorithm SHA256).Hash.ToLower()
+          "${hash}  ${{ matrix.asset_name }}.zip" | Out-File -Encoding ascii -NoNewline "${{ matrix.asset_name }}.zip.sha256"
 
       - uses: actions/upload-artifact@v4
         with:
