@@ -20,6 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Linux
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             archive: tar.gz
@@ -30,12 +31,7 @@ jobs:
             archive: tar.gz
             asset_name: spoor-aarch64-unknown-linux-gnu
 
-          - target: x86_64-unknown-linux-musl
-            os: ubuntu-latest
-            archive: tar.gz
-            asset_name: spoor-x86_64-unknown-linux-musl
-            musl: true
-
+          # macOS
           - target: x86_64-apple-darwin
             os: macos-latest
             archive: tar.gz
@@ -46,10 +42,16 @@ jobs:
             archive: tar.gz
             asset_name: spoor-aarch64-apple-darwin
 
+          # Windows
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             archive: zip
             asset_name: spoor-x86_64-pc-windows-msvc
+
+          - target: aarch64-pc-windows-msvc
+            os: windows-11-arm
+            archive: zip
+            asset_name: spoor-aarch64-pc-windows-msvc
 
     steps:
       - uses: actions/checkout@v4
@@ -59,13 +61,6 @@ jobs:
           targets: ${{ matrix.target }}
 
       - uses: Swatinem/rust-cache@v2
-
-      - name: Install musl toolchain
-        if: matrix.musl == true
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y musl-tools
-          rustup target add x86_64-unknown-linux-musl
 
       - name: Build release binary
         run: cargo build --release --target ${{ matrix.target }} -p spoor-cli

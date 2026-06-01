@@ -15,13 +15,13 @@
 
 ### 预编译二进制（推荐：Docker / 平台集成）
 
-在 [GitHub Releases](https://github.com/P0m32Kun/Spoor/releases) 下载对应平台包，解压后将 `spoor` 放入 `PATH`：
+在 [GitHub Releases](https://github.com/P0m32Kun/Spoor/releases) 下载对应平台包（共 6 个：Linux / macOS / Windows × x86_64 / ARM64），解压后将 `spoor` 放入 `PATH`：
 
-| 容器 / 环境 | 资产文件 |
-|-------------|----------|
-| Debian / Ubuntu / glibc Linux x86_64 | `spoor-x86_64-unknown-linux-gnu.tar.gz` |
-| Linux ARM64 | `spoor-aarch64-unknown-linux-gnu.tar.gz` |
-| Alpine / musl Linux x86_64 | `spoor-x86_64-unknown-linux-musl.tar.gz` |
+|  | x86_64 | ARM64 |
+|--|--------|-------|
+| Linux | `spoor-x86_64-unknown-linux-gnu.tar.gz` | `spoor-aarch64-unknown-linux-gnu.tar.gz` |
+| macOS | `spoor-x86_64-apple-darwin.tar.gz` | `spoor-aarch64-apple-darwin.tar.gz` |
+| Windows | `spoor-x86_64-pc-windows-msvc.zip` | `spoor-aarch64-pc-windows-msvc.zip` |
 
 ```bash
 # 示例：Linux x86_64

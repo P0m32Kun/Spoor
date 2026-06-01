@@ -28,17 +28,17 @@ Spoor **只处理单个 JavaScript/TypeScript 文件**（或 stdin），输出�
 
 ### 2.1 预编译二进制（Docker / 平台集成推荐）
 
-发布页：[GitHub Releases](https://github.com/P0m32Kun/Spoor/releases)
+发布页：[GitHub Releases](https://github.com/P0m32Kun/Spoor/releases)（6 个平台：Linux / macOS / Windows × x86_64 / ARM64）
 
-| 环境 | 资产 |
-|------|------|
-| glibc Linux x86_64（Debian/Ubuntu 等） | `spoor-x86_64-unknown-linux-gnu.tar.gz` |
-| Linux ARM64 | `spoor-aarch64-unknown-linux-gnu.tar.gz` |
-| Alpine / musl x86_64 | `spoor-x86_64-unknown-linux-musl.tar.gz` |
+|  | x86_64 | ARM64 |
+|--|--------|-------|
+| Linux | `spoor-x86_64-unknown-linux-gnu.tar.gz` | `spoor-aarch64-unknown-linux-gnu.tar.gz` |
+| macOS | `spoor-x86_64-apple-darwin.tar.gz` | `spoor-aarch64-apple-darwin.tar.gz` |
+| Windows | `spoor-x86_64-pc-windows-msvc.zip` | `spoor-aarch64-pc-windows-msvc.zip` |
 
 ```bash
 VERSION=0.2.0
-ARCH=x86_64-unknown-linux-gnu   # 或 aarch64-unknown-linux-gnu / x86_64-unknown-linux-musl
+ARCH=x86_64-unknown-linux-gnu   # 按上表替换为目标三元组
 
 curl -fsSL -o /tmp/spoor.tgz \
   "https://github.com/P0m32Kun/Spoor/releases/download/v${VERSION}/spoor-${ARCH}.tar.gz"
@@ -65,8 +65,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
 FROM your-platform-image
 COPY --from=spoor /usr/local/bin/spoor /usr/local/bin/spoor
 ```
-
-Alpine 镜像请将 URL 中的资产改为 `spoor-x86_64-unknown-linux-musl.tar.gz`。
 
 ### 2.2 从源码安装
 
