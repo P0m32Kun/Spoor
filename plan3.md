@@ -2,7 +2,7 @@
 
 > **上级：** [plan1.md](./plan1.md) § Phase 2  
 > **前置：** Phase 0、Phase 1 已签 off  
-> **预估：** 约 2 周 · **当前进度：** ~40%
+> **预估：** 约 2 周 · **当前进度：** ~55%
 
 **Goal：** `spoor keys` 有真实输出；`spoor scan` 一次产出 path + endpoint + secret；补齐现代前端 HTTP 客户端与路由类 URL。
 
@@ -14,7 +14,7 @@
 - [x] `spoor scan` 三类 finding 同屏输出
 - [x] 至少新增 axios + jQuery matcher
 - [x] XHR matcher 收紧（减少任意 `.open` 误报）
-- [x] `cargo test --workspace` 全绿（27 passed）
+- [x] `cargo test --workspace` 全绿（30 passed）
 
 ---
 
@@ -62,12 +62,12 @@
 
 ---
 
-## Task D：协议与路由类 URL
+## Task D：协议与路由类 URL（部分完成）
 
-- [ ] WebSocket：`new WebSocket(url)`
-- [ ] GraphQL：`` gql`...` ``、`/graphql` 路径粗匹配
+- [x] WebSocket：`new WebSocket(url)`
+- [x] GraphQL：`` gql`...` `` 提示 + `graphql(url, …)` 请求
 - [ ] react-router / vue-router path 字符串（高价值 path finding）
-- [ ] `//# sourceMappingURL=` 提取
+- [x] `//# sourceMappingURL=` 提取
 
 ---
 

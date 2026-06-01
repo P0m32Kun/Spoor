@@ -7,8 +7,8 @@ use oxc_span::SourceType;
 use crate::dedup::dedup_findings;
 use crate::finding::{Finding, FindingKind};
 use crate::matcher::{
-    AxiosMatcher, FetchMatcher, JqueryMatcher, LiteralCollector, LocationMatcher, MatchContext,
-    SecretMatcher, WindowOpenMatcher, XhrMatcher,
+    AxiosMatcher, FetchMatcher, GraphqlMatcher, JqueryMatcher, LiteralCollector, LocationMatcher,
+    MatchContext, SecretMatcher, SourceMapMatcher, WebSocketMatcher, WindowOpenMatcher, XhrMatcher,
 };
 
 #[derive(Debug, Clone)]
@@ -65,7 +65,15 @@ impl<'a> Analyzer<'a> {
         findings.extend(JqueryMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
         findings
             .extend(WindowOpenMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
+        findings.extend(
+            WebSocketMatcher::new(MatchContext::new(self.source)).collect(&ret.program),
+        );
+        findings
+            .extend(GraphqlMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
         findings.extend(SecretMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
+        findings.extend(
+            SourceMapMatcher::new(MatchContext::new(self.source)).collect(&ret.program),
+        );
         findings
             .extend(LiteralCollector::new(MatchContext::new(self.source)).collect(&ret.program));
         dedup_findings(findings)
