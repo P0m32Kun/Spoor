@@ -169,5 +169,6 @@ for f in ./katana-out/*.js; do spoor scan "$f" --jsonl >> all-findings.jsonl; do
 | [plan3.md](./plan3.md) | Phase 2 实施清单（已完成） |
 | [plan4.md](./plan4.md) | ~~Phase 3~~ 归档，不实施 |
 | [plan5.md](./plan5.md) | ~~Phase 4~~ 归档，不实施 |
+| [docs/INTEGRATION.md](./docs/INTEGRATION.md) | **平台集成：命令、参数、JSON schema** |
 | [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md) | 进度快照 |
 | [AGENTS.md](./AGENTS.md) | **AI / Agent 范围与禁忌（必读）** |

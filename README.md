@@ -1,69 +1,60 @@
 # Spoor
 
-消费 **Katana（等）提取的 JavaScript 文件**，静态产出 **路径、API 端点、敏感信息** 三类结果，供 ffuf / 手工排查等下游使用。基于 [Oxc](https://oxc.rs/) 解析。
+消费 **Katana 等工具提取的 JavaScript 文件**，静态输出 **路径、API 端点、敏感信息**，供下游平台集成。
+
+**完整集成文档（命令、参数、JSON 格式）：** [docs/INTEGRATION.md](./docs/INTEGRATION.md)
 
 **仓库**: [github.com/P0m32Kun/Spoor](https://github.com/P0m32Kun/Spoor)
 
-**文档：** [plan1 范围与进度](./plan1.md) · [JSON 模型](./plan2.md) · [Agent 指导](./AGENTS.md) · [进度快照](./docs/DEVELOPMENT.md)
+---
 
-## 工具链位置
+## 工具链
 
 ```
-Katana（爬取 + 抽 JS）→ Spoor（分析单个 .js）→ 下游
+Katana → Spoor（本工具，单 .js 文件）→ 你的平台 / ffuf / 告警
 ```
 
-Spoor **不负责**爬站、HTML 抽取或目录扫描；批量处理请对 Katana 输出的 JS 循环调用：
+## 快速开始
 
 ```bash
-for f in ./katana-out/*.js; do spoor scan "$f" --jsonl >> all.jsonl; done
-```
+cargo install --path crates/spoor-cli   # 需 Rust 1.93+
 
-## 要求
-
-- Rust **1.93+**（推荐 1.94）
-
-## 安装
-
-```bash
-git clone git@github.com:P0m32Kun/Spoor.git
-cd Spoor
-cargo install --path crates/spoor-cli
-```
-
-## 用法
-
-```bash
-spoor scan app.js              # path + endpoint + secret
-spoor paths app.js             # 仅 path
+spoor scan app.js              # path + endpoint + secret → JSON
+spoor scan app.js --jsonl      # 每行一个 finding（平台集成推荐）
 spoor apis app.js              # 仅 endpoint
 spoor keys app.js              # 仅 secret
-cat bundle.js | spoor scan -   # stdin
-spoor scan app.js --jsonl       # 行式 JSON，便于管道
 ```
 
-## 能力摘要
+## 输出概要
 
-**Endpoint：** fetch、location、XHR、axios、ky、got、superagent、jQuery、window.open、WebSocket、GraphQL
+**标准 JSON：**
 
-**Path：** 字面量、react/vue `router.path`、sourceMappingURL
+```json
+{
+  "file": "app.js",
+  "findings": [
+    { "kind": "endpoint", "value": "/api/users", "method": "GET", "confidence": "high", "origin": { "pattern": "fetch", "line": 10 } },
+    { "kind": "secret", "value": "AKIA...", "secret_type": "aws_access_key", "severity": "critical", "origin": { "pattern": "string_literal" } }
+  ]
+}
+```
 
-**Secret：** AKIA、GCP（AIza）、Firebase、service account、`sk-`、GitHub token、对象敏感键
+**JSONL（`--jsonl`）：** 每行一个 `Finding`，无 `file` 字段 — 详见 [集成指南](./docs/INTEGRATION.md)。
 
-**限制：** 单文件输入；动态拼接 URL（如 `fetch(base + "/x")`）通常不产出 endpoint。
+## 文档
 
-## 输出模型
-
-三类 finding：`path`、`endpoint`、`secret`。详见 [plan2.md](./plan2.md)。
+| 文档 | 说明 |
+|------|------|
+| **[docs/INTEGRATION.md](./docs/INTEGRATION.md)** | **集成指南（参数 + 完整 schema）** |
+| [plan2.md](./plan2.md) | JSON 模型设计 |
+| [AGENTS.md](./AGENTS.md) | 项目范围 |
+| [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md) | 能力快照 |
 
 ## 开发
 
 ```bash
 cargo test --workspace
-cargo run -p spoor-cli -- scan tests/fixtures/sample.js
-
-# jsluice 对标（需安装 jsluice；未安装则自动 skip）
-cargo test -p spoor-core jsluice_parity
-./tests/jsluice_parity.sh
+cargo test -p spoor-core jsluice_parity   # 可选，需 jsluice
 ```
 
 ## License

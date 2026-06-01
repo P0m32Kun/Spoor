@@ -102,6 +102,7 @@ AKIA · AIza / GCP · Firebase · service_account · sk- · ghp_ · 对象键启
 | [plan2.md](../plan2.md) | JSON 模型 |
 | [plan3.md](../plan3.md) | Phase 2 清单（已完成） |
 | [Phase 2 retro](./superpowers/plans/2026-05-31-spoor-phase-2-retro.md) | 签 off 证据 |
+| [docs/INTEGRATION.md](./INTEGRATION.md) | **平台集成指南** |
 | [README.md](../README.md) | 安装与用法 |
 | [AGENTS.md](../AGENTS.md) | AI Agent 范围与禁忌 |
 

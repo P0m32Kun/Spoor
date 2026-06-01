@@ -64,14 +64,12 @@ Do not implement batching inside Spoor unless the user explicitly asks.
 - Minimize diff scope; do not refactor unrelated code
 - Do not commit unless the user asks
 
-## Documentation map
+## 文档 map
 
 | File | Use |
 |------|-----|
-| [plan1.md](./plan1.md) | Scope lock + phase status |
-| [plan2.md](./plan2.md) | JSON finding schema |
-| [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md) | Current capability snapshot |
-| [docs/superpowers/plans/2026-05-31-spoor-phase-2-retro.md](./docs/superpowers/plans/2026-05-31-spoor-phase-2-retro.md) | Phase 2 sign-off evidence |
+| [docs/INTEGRATION.md](./docs/INTEGRATION.md) | **Platform integration — CLI, params, JSON schema** |
+| [README.md](../README.md) | Quick start |
 
 ## Maintenance backlog (allowed, low priority)
 
