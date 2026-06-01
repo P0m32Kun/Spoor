@@ -83,29 +83,32 @@ js-rs/
 
 ### Phase 1 — URL 提取对标 jsluice（约 2 周）
 
-**交付**：`js-rs urls file.js` 输出与 jsluice 语义接近的 JSON。
+**交付**：`spoor apis file.js` 输出语义级 `endpoint` finding（plan2 JSON 模型）。
 
 内置 matcher（优先级从高到低）：
 
-| Matcher | 触发模式 | 备注 |
-|---------|----------|------|
-| XHR | `XMLHttpRequest.open` | 移植 url-match-xhr |
-| jQuery | `$.get/post/ajax` | 移植 url-match-jquery |
-| location | `location` / `.href` / `.src` 赋值 | 要求右侧「以字符串开头」 |
-| location.replace | `location.replace(...)` | |
-| window.open | `window.open` / `open` | |
-| fetch | `fetch(url, init)` | 解析 method、headers |
-| 泛化 call | 首参像 URL 的任意调用 | `MaybeURL` 过滤 |
-| string literal | 兜底 | 去重时保留更多 context 的版本 |
+| Matcher | 触发模式 | Phase 1 状态 |
+|---------|----------|--------------|
+| fetch | `fetch(url, init)` | ✅ `matcher/fetch.rs` |
+| location | `location` / `.href` 赋值 | ✅ |
+| location.replace | `location.replace(...)` | ✅ |
+| XHR | `.open(method, url)` | ⚠️ 已实现，匹配较宽 |
+| string literal | 兜底 path | ✅ + 去重 |
+| jQuery | `$.get/post/ajax` | ❌ Phase 2+ |
+| window.open | `window.open` / `open` | ❌ Phase 2+ |
+| 泛化 call | 首参像 URL 的任意调用 | ❌ Phase 2+ |
 
 其它：
 
-- [ ] 过滤 `data:` / `tel:` / `javascript:` / 纯 `EXPR` URL
-- [ ] 从 URL 解析 `query_params`，去重
+- [x] 过滤 `data:` / `tel:` / `javascript:`（`maybe_url`）；fetch 侧拒绝含 `EXPR` 的动态 URL
+- [ ] 从 URL 解析 `query_params`
+- [x] 去重（Endpoint > Path）
 - [ ] HTML 输入：抽 `<script>` 再分析
-- [ ] CLI：`urls`、`--json`、`stdin`、单文件
+- [x] CLI：`spoor apis` / `spoor scan` / stdin / 单文件
 
-**验收**：用 jsluice README 中的示例 + 10～20 个 fixture，对比 URL 集合（允许顺序不同）。
+**验收**：`tests/fixtures/phase1/combined.js` + 单 matcher fixture；jsluice 集合对比留 Phase 1.5。
+
+回顾文档：[docs/superpowers/plans/2026-05-31-spoor-phase-1-retro.md](./docs/superpowers/plans/2026-05-31-spoor-phase-1-retro.md)
 
 ### Phase 2 — 密钥与红队增强（约 2 周）
 

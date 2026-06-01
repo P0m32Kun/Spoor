@@ -10,7 +10,9 @@
 
 **Spec 来源:** [plan1.md](../../plan1.md) § Phase 1、[plan2.md](../../plan2.md) endpoint JSON 模型
 
-**Phase 0 前置:** 已完成（8/8 tests，`docs/superpowers/plans/2026-05-31-spoor-phase-0-retro.md`）
+**Phase 0 前置:** 已完成（8/8 tests，`docs/superpowers/plans/2026-05-31-spoor-phase-0-retro.md`)
+
+**Implementation status (2026-05-31):** ✅ 全部 7 Task 已完成 + 审查修复 `3feda14`。回顾见 [phase-1-retro](./2026-05-31-spoor-phase-1-retro.md)。
 
 ---
 
@@ -40,88 +42,7 @@
 - Modify: `crates/spoor-core/src/lib.rs`
 - Modify: `crates/spoor-core/src/analyzer.rs`
 
-- [ ] **Step 1: 写 failing test — parse 只执行一次**
-
-在 `analyzer.rs` `#[cfg(test)]` 添加：
-
-```rust
-#[test]
-fn collect_findings_reuses_single_parse() {
-    // 通过公开 API：new + collect_literal_paths 不应 panic；
-    // 重构后 collect_findings 返回与 collect_literal_paths 相同 literal 结果
-    let src = include_str!("../../../tests/fixtures/sample.js");
-    let a = Analyzer::new(src, Some("sample.js"));
-    let literals = a.collect_literal_paths();
-    let all = a.collect_findings();
-    let literal_values: HashSet<_> = literals.iter().map(|f| f.value.as_str()).collect();
-    let path_values: HashSet<_> = all
-        .iter()
-        .filter(|f| f.kind == FindingKind::Path)
-        .map(|f| f.value.as_str())
-        .collect();
-    assert_eq!(literal_values, path_values);
-}
-```
-
-- [ ] **Step 2:** 运行确认 FAIL（`collect_findings` 不存在）
-
-```bash
-cargo test -p spoor-core collect_findings_reuses_single_parse -- --nocapture
-```
-
-Expected: compile error `collect_findings` not found
-
-- [ ] **Step 3: 重构 Analyzer 缓存 Program**
-
-```rust
-// analyzer.rs — 存储 parse 结果，移除 collect_literal_paths 内二次 parse
-pub struct Analyzer<'a> {
-    source: &'a str,
-    filename: String,
-    program: oxc_allocator::Box<'a, oxc_ast::ast::Program<'a>>, // 或持有 ParseResult
-    outcome: ParseOutcome,
-}
-
-pub fn collect_findings(&self) -> Vec<Finding> {
-    // Phase 1 Task 1: 仅 literal matcher，行为等同 collect_literal_paths
-    ...
-}
-
-pub fn collect_literal_paths(&self) -> Vec<Finding> {
-    self.collect_findings()
-        .into_iter()
-        .filter(|f| f.kind == FindingKind::Path)
-        .collect()
-}
-```
-
-- [ ] **Step 4: 添加 `MatchContext`（matcher/mod.rs）**
-
-```rust
-pub struct MatchContext<'a> {
-    pub source: &'a str,
-}
-
-impl<'a> MatchContext<'a> {
-    pub fn line_col(&self, offset: u32) -> (u32, u32) { /* 从 analyzer 迁移 */ }
-    pub fn snippet(&self, offset: u32, max_len: usize) -> String { /* 从 analyzer 迁移 */ }
-}
-```
-
-- [ ] **Step 5:** 运行测试
-
-```bash
-cargo test -p spoor-core
-```
-
-Expected: 全部 PASS（含新 test）
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add crates/spoor-core/
-git commit -m "refactor: cache parsed Program and add MatchContext"
-```
+- [x] **Step 1–6:** 完成 — `904190e`（Oxc 生命周期：每次 `collect_findings()` parse 一次，`parse_outcome` 经 `OnceCell` 缓存）
 
 ---
 
@@ -142,7 +63,7 @@ fetch("https://api.example.com/data", { method: "POST" });
 const u = "/ignored";
 ```
 
-- [ ] **Step 1: 写 failing test**
+- [x] **Step 1–5:** 完成 — `1d455e4`
 
 ```rust
 // matcher/fetch.rs #[cfg(test)] 或 analyzer tests

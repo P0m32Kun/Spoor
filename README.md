@@ -56,6 +56,11 @@ cargo run -p spoor-cli -- apis tests/fixtures/phase1/combined.js
 
 见 [plan1.md](./plan1.md)（阶段划分）与 [plan2.md](./plan2.md)（命名与 JSON 设计）。
 
+阶段回顾与完成度：
+
+- [Phase 0 retro](./docs/superpowers/plans/2026-05-31-spoor-phase-0-retro.md)
+- [Phase 1 retro](./docs/superpowers/plans/2026-05-31-spoor-phase-1-retro.md)
+
 ## License
 
 MIT
