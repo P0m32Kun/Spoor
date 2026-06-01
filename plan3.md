@@ -2,7 +2,7 @@
 
 > **上级：** [plan1.md](./plan1.md) § Phase 2  
 > **前置：** Phase 0、Phase 1 已签 off  
-> **预估：** 约 2 周 · **当前进度：** ~70%
+> **预估：** 约 2 周 · **当前进度：** ~80%
 
 **Goal：** `spoor keys` 有真实输出；`spoor scan` 一次产出 path + endpoint + secret；补齐现代前端 HTTP 客户端与路由类 URL。
 
@@ -14,7 +14,7 @@
 - [x] `spoor scan` 三类 finding 同屏输出
 - [x] 至少新增 axios + jQuery matcher
 - [x] XHR matcher 收紧（减少任意 `.open` 误报）
-- [x] `cargo test --workspace` 全绿（32 passed）
+- [x] `cargo test --workspace` 全绿（35 passed）
 
 ---
 
@@ -46,14 +46,16 @@
 
 ---
 
-## Task C：HTTP 客户端 Matcher ✅（P0 部分）
+## Task C：HTTP 客户端 Matcher ✅
 
 | Matcher | 触发 | 优先级 | 状态 |
 |---------|------|--------|------|
 | axios | `axios.get/post/request(...)` | P0 | ✅ |
 | jQuery | `$.get` / `$.post` / `$.ajax` | P0 | ✅ |
 | window.open | `window.open(url)` | P1 | ✅ |
-| ky / got / superagent | 常见调用形式 | P1 | ❌ |
+| ky | `ky.get/post(...)`、`ky(url)` | P1 | ✅ |
+| got | `got.get/post(...)`、`got(url, opts)` | P1 | ✅ |
+| superagent | `superagent.get/post(...)`、`request.get(...)` | P1 | ✅ |
 
 **Checklist：**
 

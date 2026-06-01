@@ -20,7 +20,7 @@
 **仓库：** https://github.com/P0m32Kun/Spoor  
 **最后更新：** 2026-05-31  
 **当前版本：** 0.1.0（未打 tag）  
-**测试：** 32 passed · **Commits：** 15+ on `main`
+**测试：** 35 passed · **Commits：** 15+ on `main`
 
 ---
 
@@ -45,7 +45,7 @@ Spoor 是在 JavaScript / TypeScript 资产里做**静态信息收集**的 CLI �
 ```
 Phase 0  基础解析 + 字面量路径     ████████████████████ 100%  ✅ 已签 off
 Phase 1  语义 endpoint matcher      ████████████████████ 100%  ✅ 已签 off
-Phase 2  密钥 + 红队 URL 增强      ██████████████░░░░░░  70%  🚧 进行中
+Phase 2  密钥 + 红队 URL 增强      ████████████████░░░░  80%  🚧 进行中
 Phase 3  并行 / 规则 / 工程化      ░░░░░░░░░░░░░░░░░░░░   0%  📋 未开始
 Phase 4  高级能力（可选）          ░░░░░░░░░░░░░░░░░░░░   0%  📋 按需
 ```
@@ -54,13 +54,13 @@ Phase 4  高级能力（可选）          ░░░░░░░░░░░░�
 |------|----------------|------|------|
 | **Phase 0** | 能解析 JS，从字符串字面量提取 path | ✅ 完成 | [retro](./superpowers/plans/2026-05-31-spoor-phase-0-retro.md) |
 | **Phase 1** | `spoor apis` 输出 fetch/location/XHR/jquery/axios endpoint | ✅ 完成 | [retro](./superpowers/plans/2026-05-31-spoor-phase-1-retro.md) · [plan](./superpowers/plans/2026-05-31-spoor-phase-1.md) |
-| **Phase 2** | `spoor keys` + WebSocket/GraphQL 等 | 🚧 ~70% | [plan3.md](../plan3.md) |
+| **Phase 2** | `spoor keys` + 现代 HTTP 客户端 | 🚧 ~80% | [plan3.md](../plan3.md) |
 | **Phase 3** | 目录并行扫描、YAML 规则、性能基准 | 📋 未开始 | [plan4.md](../plan4.md) |
 | **Phase 4** | regex 兜底、SARIF、WASM/NAPI | 📋 按需 | [plan5.md](../plan5.md) |
 
 **Phase 1 已 100%：** fetch / location / XHR（收紧）/ jQuery / window.open / axios / query_params / 去重 / jsluice 子集 fixture 均已交付。
 
-**Phase 2 进行中：** GCP/Firebase secret、react/vue router path、WebSocket/GraphQL 已接入；ky/got、env 变量、Phase 2 retro 待做。
+**Phase 2 进行中：** ky/got/superagent 已接入；env 变量、Phase 2 retro 待做。
 
 ---
 
@@ -92,7 +92,7 @@ Phase 4  高级能力（可选）          ░░░░░░░░░░░░�
 | **axios** | `axios.get/post/request(...)` | ✅ | `matcher/axios.rs` |
 | **window.open** | `window.open(url)` | ✅ | `matcher/window_open.rs` |
 | **string literal** | 兜底 → `path` | ✅ | `matcher/literal.rs` |
-| ky / got / superagent | 现代 HTTP 库 | ❌ Phase 2 P1 | — |
+| ky / got / superagent | 现代 HTTP 库 | ✅ | `matcher/http_clients.rs` |
 | WebSocket | `new WebSocket(url)` | ✅ | `matcher/websocket.rs` |
 | GraphQL | `gql` 模板 / `graphql(url)` | ✅ | `matcher/graphql.rs` |
 | sourceMappingURL | 字符串内 `sourceMappingURL=` | ✅ | `matcher/source_map.rs` |
@@ -177,7 +177,7 @@ flowchart TB
 | URL 增强 | query_params、XHR 收紧 | ✅ |
 | Secrets 扩展 | GCP/Firebase/service account | ✅ |
 | 协议/路由 | WebSocket、GraphQL、react/vue-router | ✅ |
-| HTTP P1 | ky / got / superagent | ❌ |
+| HTTP P1 | ky / got / superagent | ✅ |
 | 质量 | Phase 2 retro | ❌ |
 
 ### Phase 3 — 性能与工程化（约 2 周）

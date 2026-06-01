@@ -35,9 +35,8 @@ spoor scan ./dist --jsonl                      # 每行一个 finding
 `spoor apis` 与 `spoor scan` 中的 endpoint 已支持：
 
 - **fetch**、**location**、**XMLHttpRequest.open**（已收紧）
-- **jQuery**（`$.get` / `$.post` / `$.ajax`）
-- **axios**、**window.open**
-- **WebSocket**、**GraphQL**（`gql` 模板 / `graphql()`）
+- **jQuery**、**axios**、**ky**、**got**、**superagent**
+- **window.open**、**WebSocket**、**GraphQL**
 - **sourceMappingURL** 提取
 
 `spoor keys` 与 `spoor scan` 中的 secret 已支持：

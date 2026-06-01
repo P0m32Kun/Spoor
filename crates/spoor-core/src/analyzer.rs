@@ -7,9 +7,9 @@ use oxc_span::SourceType;
 use crate::dedup::dedup_findings;
 use crate::finding::{Finding, FindingKind};
 use crate::matcher::{
-    AxiosMatcher, FetchMatcher, GraphqlMatcher, JqueryMatcher, LiteralCollector, LocationMatcher,
-    MatchContext, RouterMatcher, SecretMatcher, SourceMapMatcher, WebSocketMatcher,
-    WindowOpenMatcher, XhrMatcher,
+    AxiosMatcher, FetchMatcher, GotMatcher, GraphqlMatcher, JqueryMatcher, KyMatcher,
+    LiteralCollector, LocationMatcher, MatchContext, RouterMatcher, SecretMatcher,
+    SourceMapMatcher, SuperagentMatcher, WebSocketMatcher, WindowOpenMatcher, XhrMatcher,
 };
 
 #[derive(Debug, Clone)]
@@ -63,6 +63,10 @@ impl<'a> Analyzer<'a> {
         findings.extend(LocationMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
         findings.extend(XhrMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
         findings.extend(AxiosMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
+        findings.extend(KyMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
+        findings.extend(GotMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
+        findings
+            .extend(SuperagentMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
         findings.extend(JqueryMatcher::new(MatchContext::new(self.source)).collect(&ret.program));
         findings
             .extend(WindowOpenMatcher::new(MatchContext::new(self.source)).collect(&ret.program));

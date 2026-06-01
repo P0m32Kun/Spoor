@@ -1,6 +1,7 @@
 mod axios;
 mod fetch;
 mod graphql;
+mod http_clients;
 mod jquery;
 mod literal;
 mod location;
@@ -15,6 +16,7 @@ mod xhr;
 pub use axios::AxiosMatcher;
 pub use fetch::FetchMatcher;
 pub use graphql::GraphqlMatcher;
+pub use http_clients::{GotMatcher, KyMatcher, SuperagentMatcher};
 pub use jquery::JqueryMatcher;
 pub use literal::LiteralCollector;
 pub use location::LocationMatcher;
