@@ -58,8 +58,10 @@ impl<'a> GraphqlMatcher<'a> {
     fn push_graphql_hint(&mut self, span_start: u32, pattern: &str) {
         let (line, column) = self.ctx.line_col(span_start);
         self.findings.push(Finding {
+            file: None,
             kind: crate::finding::FindingKind::Endpoint,
             value: "/graphql".into(),
+            raw: None,
             confidence: Confidence::Medium,
             origin: Origin {
                 pattern: pattern.into(),
@@ -73,6 +75,7 @@ impl<'a> GraphqlMatcher<'a> {
             severity: None,
             context: None,
             tags: vec!["graphql".into()],
+            http_status: None,
         });
     }
 }

@@ -1,0 +1,111 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  BINARY_NAME: spoor
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            archive: tar.gz
+            asset_name: spoor-x86_64-unknown-linux-gnu
+
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
+            archive: tar.gz
+            asset_name: spoor-aarch64-unknown-linux-gnu
+
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            archive: tar.gz
+            asset_name: spoor-x86_64-unknown-linux-musl
+            musl: true
+
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            archive: tar.gz
+            asset_name: spoor-x86_64-apple-darwin
+
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            archive: tar.gz
+            asset_name: spoor-aarch64-apple-darwin
+
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            archive: zip
+            asset_name: spoor-x86_64-pc-windows-msvc
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install musl toolchain
+        if: matrix.musl == true
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+          rustup target add x86_64-unknown-linux-musl
+
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }} -p spoor-cli
+
+      - name: Package (Unix)
+        if: matrix.archive == 'tar.gz'
+        run: |
+          cp target/${{ matrix.target }}/release/${{ env.BINARY_NAME }} ./${{ env.BINARY_NAME }}
+          tar czf ${{ matrix.asset_name }}.tar.gz ${{ env.BINARY_NAME }}
+          sha256sum ${{ matrix.asset_name }}.tar.gz > ${{ matrix.asset_name }}.tar.gz.sha256
+
+      - name: Package (Windows)
+        if: matrix.archive == 'zip'
+        shell: bash
+        run: |
+          cp target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}.exe ./${{ env.BINARY_NAME }}.exe
+          zip -j ${{ matrix.asset_name }}.zip ${{ env.BINARY_NAME }}.exe
+          sha256sum ${{ matrix.asset_name }}.zip > ${{ matrix.asset_name }}.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: |
+            ${{ matrix.asset_name }}.${{ matrix.archive }}
+            ${{ matrix.asset_name }}.${{ matrix.archive }}.sha256
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: find artifacts -type f | sort
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: artifacts/**

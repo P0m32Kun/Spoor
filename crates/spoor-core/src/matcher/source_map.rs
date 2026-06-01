@@ -39,8 +39,10 @@ impl<'a> Visit<'a> for SourceMapMatcher<'a> {
                     let span = lit.span;
                     let (line, column) = self.ctx.line_col(span.start);
                     self.findings.push(Finding {
+                        file: None,
                         kind: FindingKind::Path,
                         value: url,
+                        raw: None,
                         confidence: Confidence::Medium,
                         origin: Origin {
                             pattern: "sourceMappingURL".into(),
@@ -54,6 +56,7 @@ impl<'a> Visit<'a> for SourceMapMatcher<'a> {
                         severity: None,
                         context: None,
                         tags: vec!["sourcemap".into()],
+                        http_status: None,
                     });
                 }
             }

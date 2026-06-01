@@ -48,8 +48,15 @@ pub struct SecretContext {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Finding {
+    /// Source JS file (absolute path when available). Set at output time for JSONL.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file: Option<String>,
     pub kind: FindingKind,
+    /// Primary payload: absolute URL (endpoint), secret string (secret), or path (path).
     pub value: String,
+    /// Original endpoint string from source when `value` was resolved from a relative path.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub raw: Option<String>,
     pub confidence: Confidence,
     pub origin: Origin,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -64,13 +71,18 @@ pub struct Finding {
     pub context: Option<SecretContext>,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub tags: Vec<String>,
+    /// HTTP status from live probe when `--from-url` verification is enabled.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub http_status: Option<u16>,
 }
 
 impl Finding {
     pub fn path(value: impl Into<String>, origin: Origin) -> Self {
         Self {
+            file: None,
             kind: FindingKind::Path,
             value: value.into(),
+            raw: None,
             confidence: Confidence::Medium,
             origin,
             method: None,
@@ -79,13 +91,16 @@ impl Finding {
             severity: None,
             context: None,
             tags: Vec::new(),
+            http_status: None,
         }
     }
 
     pub fn endpoint(value: impl Into<String>, method: impl Into<String>, origin: Origin) -> Self {
         Self {
+            file: None,
             kind: FindingKind::Endpoint,
             value: value.into(),
+            raw: None,
             confidence: Confidence::High,
             method: Some(method.into()),
             origin,
@@ -94,6 +109,7 @@ impl Finding {
             severity: None,
             context: None,
             tags: Vec::new(),
+            http_status: None,
         }
     }
 
@@ -104,8 +120,10 @@ impl Finding {
         origin: Origin,
     ) -> Self {
         Self {
+            file: None,
             kind: FindingKind::Secret,
             value: value.into(),
+            raw: None,
             confidence: Confidence::High,
             origin,
             method: None,
@@ -114,6 +132,7 @@ impl Finding {
             severity: Some(severity.into()),
             context: None,
             tags: Vec::new(),
+            http_status: None,
         }
     }
 }

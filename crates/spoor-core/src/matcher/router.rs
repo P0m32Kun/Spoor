@@ -40,8 +40,10 @@ impl<'a> Visit<'a> for RouterMatcher<'a> {
         if let Some(path) = extract_route_path(obj) {
             let (line, column) = self.ctx.line_col(obj.span.start);
             self.findings.push(Finding {
+                file: None,
                 kind: FindingKind::Path,
                 value: path,
+                raw: None,
                 confidence: Confidence::High,
                 origin: Origin {
                     pattern: "router.path".into(),
@@ -55,6 +57,7 @@ impl<'a> Visit<'a> for RouterMatcher<'a> {
                 severity: None,
                 context: None,
                 tags: vec!["router".into()],
+                http_status: None,
             });
         }
         walk_object_expression(self, obj);

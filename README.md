@@ -11,21 +11,54 @@
 
 **仓库:** [github.com/P0m32Kun/Spoor](https://github.com/P0m32Kun/Spoor)
 
-## 快速开始
+## 安装
+
+### 预编译二进制（推荐：Docker / 平台集成）
+
+在 [GitHub Releases](https://github.com/P0m32Kun/Spoor/releases) 下载对应平台包，解压后将 `spoor` 放入 `PATH`：
+
+| 容器 / 环境 | 资产文件 |
+|-------------|----------|
+| Debian / Ubuntu / glibc Linux x86_64 | `spoor-x86_64-unknown-linux-gnu.tar.gz` |
+| Linux ARM64 | `spoor-aarch64-unknown-linux-gnu.tar.gz` |
+| Alpine / musl Linux x86_64 | `spoor-x86_64-unknown-linux-musl.tar.gz` |
+
+```bash
+# 示例：Linux x86_64
+VERSION=0.2.0
+curl -fsSL -o /tmp/spoor.tgz \
+  "https://github.com/P0m32Kun/Spoor/releases/download/v${VERSION}/spoor-x86_64-unknown-linux-gnu.tar.gz"
+tar xzf /tmp/spoor.tgz -C /usr/local/bin
+spoor --version
+```
+
+每个资产附带 `.sha256` 校验文件。
+
+### 从源码
 
 ```bash
 cargo install --path crates/spoor-cli   # Rust 1.93+
-
-spoor scan app.js              # path + endpoint + secret
-spoor scan app.js --jsonl      # 平台集成推荐
-spoor apis app.js              # 仅 endpoint
-spoor keys app.js              # 仅 secret
 ```
 
-Katana 批量：
+## 快速开始
 
 ```bash
-for f in ./katana-out/*.js; do spoor scan "$f" --jsonl >> findings.jsonl; done
+cargo install --path crates/spoor-cli   # 或见上方 Releases 预编译包
+
+# 扫描 JS URL（拉取 → 分析 → 拼接 → 探测）
+spoor scan "http://192.168.1.8:18080/1.js" --jsonl
+
+# URL 列表文件（每行一个 URL）
+spoor scan katana-urls.txt --jsonl
+
+spoor apis ./local.js          # 本地文件用 paths/apis/keys
+spoor keys ./local.js
+```
+
+Katana 批量：把 JS URL 写入列表文件后一次扫描：
+
+```bash
+spoor scan katana-urls.txt --jsonl >> findings.jsonl
 ```
 
 ## 输出概要

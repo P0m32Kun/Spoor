@@ -9,8 +9,9 @@ Spoor statically analyzes **JavaScript/TypeScript files** (typically from [Katan
 **Pipeline role:**
 
 ```
-Katana → extracts .js from targets
-Spoor  → path + endpoint + secret from each file
+Katana → JS URL + 页面 URL 列表
+Spoor  → JS：path + endpoint + secret
+         页面：secret only（补 Katana 未覆盖的泄漏面）
 You    → ffuf, Burp, notes, etc.
 ```
 
@@ -39,7 +40,7 @@ Every feature must fit one of these three. If it does not, **do not implement it
 | Feature | Why |
 |---------|-----|
 | Recursive directory scan | Katana lists files; use `xargs`/`for` + `spoor scan` |
-| HTML / scraper / script tags | Katana already outputs JS |
+| HTML / page URLs | **Secret-only scan** when URL is not a JS asset (user-requested); no endpoint/path on pages |
 | Crawling, spidering, katana-like behavior | Wrong tool |
 | YAML/rule files, plugin systems | Not a rule platform |
 | SARIF, OpenAPI export, WASM, NAPI | Out of toolchain role |

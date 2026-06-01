@@ -16,3 +16,9 @@ clap.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 spoor-core = { path = "../spoor-core" }
+reqwest.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+wiremock = "0.6"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

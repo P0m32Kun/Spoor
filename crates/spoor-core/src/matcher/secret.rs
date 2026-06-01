@@ -6,12 +6,9 @@ use oxc_ast_visit::{
 
 use crate::finding::{Finding, Origin, SecretContext};
 use crate::matcher::MatchContext;
-
-const AWS_KEY_PREFIX: &str = "AKIA";
-const GCP_API_KEY_PREFIX: &str = "AIza";
-const GCP_API_KEY_LEN: usize = 39;
-const PEM_PRIVATE_KEY: &str = "-----BEGIN PRIVATE KEY-----";
-const PEM_RSA_PRIVATE_KEY: &str = "-----BEGIN RSA PRIVATE KEY-----";
+use crate::secret_patterns::{
+    looks_like_aws_access_key, looks_like_gcp_api_key, looks_like_private_key_pem,
+};
 
 pub struct SecretMatcher<'a> {
     ctx: MatchContext<'a>,
@@ -203,27 +200,6 @@ fn is_firebase_config(props: &std::collections::HashMap<&str, &str>) -> bool {
     props.contains_key("projectId")
         && props.contains_key("authDomain")
         && props.contains_key("apiKey")
-}
-
-fn looks_like_aws_access_key(value: &str) -> bool {
-    value.starts_with(AWS_KEY_PREFIX)
-        && value.len() == 20
-        && value
-            .bytes()
-            .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit())
-}
-
-fn looks_like_gcp_api_key(value: &str) -> bool {
-    value.starts_with(GCP_API_KEY_PREFIX)
-        && value.len() == GCP_API_KEY_LEN
-        && value
-            .bytes()
-            .skip(GCP_API_KEY_PREFIX.len())
-            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
-}
-
-fn looks_like_private_key_pem(value: &str) -> bool {
-    value.contains(PEM_PRIVATE_KEY) || value.contains(PEM_RSA_PRIVATE_KEY)
 }
 
 fn is_sensitive_object_key(key: &str) -> bool {

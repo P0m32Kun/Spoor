@@ -44,8 +44,10 @@ impl<'a> LocationMatcher<'a> {
             column: Some(column),
         };
         self.findings.push(Finding {
+            file: None,
             kind: FindingKind::Endpoint,
             value,
+            raw: None,
             confidence: Confidence::High,
             origin,
             method,
@@ -54,6 +56,7 @@ impl<'a> LocationMatcher<'a> {
             severity: None,
             context: None,
             tags: Vec::new(),
+            http_status: None,
         });
     }
 }

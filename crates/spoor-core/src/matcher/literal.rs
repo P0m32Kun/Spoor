@@ -36,8 +36,10 @@ impl<'a> Visit<'a> for LiteralCollector<'a> {
                 let span = lit.span;
                 let (line, column) = self.ctx.line_col(span.start);
                 self.findings.push(Finding {
+                    file: None,
                     kind: FindingKind::Path,
                     value: folded,
+                    raw: None,
                     confidence: Confidence::Low,
                     origin: Origin {
                         pattern: "string_literal".into(),
@@ -51,6 +53,7 @@ impl<'a> Visit<'a> for LiteralCollector<'a> {
                     severity: None,
                     context: None,
                     tags: vec!["literal".into()],
+                    http_status: None,
                 });
             }
         }

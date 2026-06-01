@@ -78,8 +78,10 @@ mod tests {
     #[test]
     fn dedup_prefers_higher_confidence_same_kind() {
         let low = Finding {
+            file: None,
             kind: FindingKind::Path,
             value: "/x".into(),
+            raw: None,
             confidence: Confidence::Low,
             origin: Origin {
                 pattern: "a".into(),
@@ -93,6 +95,7 @@ mod tests {
             severity: None,
             context: None,
             tags: vec![],
+            http_status: None,
         };
         let high = Finding {
             confidence: Confidence::High,
@@ -112,8 +115,10 @@ mod tests {
     #[test]
     fn dedup_prefers_method_set() {
         let without_method = Finding {
+            file: None,
             kind: FindingKind::Endpoint,
             value: "/api".into(),
+            raw: None,
             confidence: Confidence::High,
             origin: Origin {
                 pattern: "location.href".into(),
@@ -127,6 +132,7 @@ mod tests {
             severity: None,
             context: None,
             tags: vec![],
+            http_status: None,
         };
         let with_method = Finding::endpoint(
             "/api",
