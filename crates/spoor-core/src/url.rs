@@ -279,9 +279,7 @@ pub fn resolve_endpoint_url(raw: &str, base_url: Option<&str>, websocket: bool) 
 
     let base_str = base_url?;
     let mut base = Url::parse(base_str).ok()?;
-    if base.host().is_none() {
-        return None;
-    }
+    base.host()?;
 
     if websocket {
         let scheme = match base.scheme() {
