@@ -364,7 +364,9 @@ cargo test -p spoor-core jsluice_parity
 | 文档 | 内容 |
 |------|------|
 | [README.md](../README.md) | 快速开始 |
-| [plan2.md](../plan2.md) | JSON 模型设计说明 |
+| [docs/ROADMAP.md](./ROADMAP.md) | 范围与进度 |
+| [docs/README.md](./README.md) | 文档索引 |
+| [AGENTS.md](../AGENTS.md) | 项目范围 |
 | [AGENTS.md](../AGENTS.md) | 项目范围（勿扩功能） |
 | [docs/DEVELOPMENT.md](./DEVELOPMENT.md) | 能力快照 |
 

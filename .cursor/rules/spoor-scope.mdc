@@ -38,5 +38,5 @@ for f in ./katana-out/*.js; do spoor scan "$f" --jsonl >> out.jsonl; done
 ## When adding code
 
 - New matcher → must map to path, endpoint, or secret; add fixture + test
-- Do not revive archived plan4/plan5 items without explicit user request
-- Read `AGENTS.md` and `plan1.md` §1 before large changes
+- Do not revive cancelled platform features without explicit user request
+- Read `AGENTS.md` and [docs/ROADMAP.md](docs/ROADMAP.md) before large changes

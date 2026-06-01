@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// One row of scan output (plan2 JSON model).
+/// One row of scan output (see docs/INTEGRATION.md).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ScanResult {
     pub file: String,

@@ -21,7 +21,7 @@ Spoor does **not** crawl, fetch pages, or walk directories.
 | Area | Detail |
 |------|--------|
 | **Inputs** | One file path or stdin; extensions `.js`, `.mjs`, `.cjs`, `.ts`, `.tsx` |
-| **Outputs** | `ScanResult` JSON / JSONL ([plan2.md](./plan2.md)): `path`, `endpoint`, `secret` only |
+| **Outputs** | `ScanResult` JSON / JSONL ([INTEGRATION.md](./docs/INTEGRATION.md)): `path`, `endpoint`, `secret` only |
 | **CLI** | `scan`, `paths`, `apis`, `keys`; `-o`, `--jsonl` |
 | **Core** | `Analyzer::collect_findings()` + matchers under `crates/spoor-core/src/matcher/` |
 | **Acceptable changes** | New/improved matchers for JS patterns; dedup/URL heuristics; tests/fixtures; docs |
@@ -44,7 +44,7 @@ Every feature must fit one of these three. If it does not, **do not implement it
 | YAML/rule files, plugin systems | Not a rule platform |
 | SARIF, OpenAPI export, WASM, NAPI | Out of toolchain role |
 | `--no-literals` / severity filters | Optional backlog only; not a new product phase |
-| “Phase 3/4” from old [plan4.md](./plan4.md) / [plan5.md](./plan5.md) | **Archived — cancelled** |
+| “Phase 3/4” platform features | **Cancelled** — see [ROADMAP.md](./docs/ROADMAP.md) |
 
 ## Batch usage (caller’s job)
 
@@ -68,8 +68,9 @@ Do not implement batching inside Spoor unless the user explicitly asks.
 
 | File | Use |
 |------|-----|
-| [docs/INTEGRATION.md](./docs/INTEGRATION.md) | **Platform integration — CLI, params, JSON schema** |
-| [README.md](../README.md) | Quick start |
+| [docs/INTEGRATION.md](./docs/INTEGRATION.md) | CLI + JSON schema |
+| [docs/ROADMAP.md](./docs/ROADMAP.md) | Scope + progress |
+| [docs/history/phase-2-retro.md](./docs/history/phase-2-retro.md) | Phase 2 sign-off |
 
 ## Maintenance backlog (allowed, low priority)
 
@@ -83,5 +84,5 @@ Do not implement batching inside Spoor unless the user explicitly asks.
 
 - Adding dependencies for HTML, HTTP client, filesystem walk, or job queues
 - New top-level CLI subcommands unrelated to scan/paths/apis/keys
-- Expanding plan4/plan5 or marking new “Phase 3” milestones
+- Expanding cancelled platform features (see ROADMAP.md)
 - README/marketing that positions Spoor as a full scanner

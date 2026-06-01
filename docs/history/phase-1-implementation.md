@@ -8,9 +8,9 @@
 
 **Tech Stack:** Rust 1.93+、Oxc 0.133、现有 `collapsed_string` / `maybe_url`、serde JSON（plan2 模型）
 
-**Spec 来源:** [plan1.md](../../plan1.md) § Phase 1、[plan2.md](../../plan2.md) endpoint JSON 模型
+**Spec 来源:** [ROADMAP.md](../ROADMAP.md) § Phase 1、[INTEGRATION.md](../INTEGRATION.md) endpoint JSON 模型
 
-**Phase 0 前置:** 已完成（8/8 tests，`docs/superpowers/plans/2026-05-31-spoor-phase-0-retro.md`)
+**Phase 0 前置:** 已完成（8/8 tests，`history/phase-0-retro.md`)
 
 **Implementation status (2026-05-31):** ✅ 全部 7 Task 已完成 + 审查修复 `3feda14`。回顾见 [phase-1-retro](./2026-05-31-spoor-phase-1-retro.md)。
 

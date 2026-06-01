@@ -1,8 +1,8 @@
 # Spoor Phase 2 回顾与完成度报告
 
-> **For agentic workers:** Phase 2 已签 off。Spoor 定位为 **Katana 下游 JS 单文件分析器**，只做 path / endpoint / secret 三类提取，勿扩展爬取、HTML、目录扫描等能力。后续见 [plan1.md](../../../plan1.md) § 范围锁定。
+> **For agentic workers:** Phase 2 已签 off。Spoor 定位为 **Katana 下游 JS 单文件分析器**，只做 path / endpoint / secret 三类提取，勿扩展爬取、HTML、目录扫描等能力。后续见 [ROADMAP.md](../ROADMAP.md) § 范围锁定。
 
-**Goal:** 对照 [plan3.md](../../../plan3.md) 与 [plan1.md](../../../plan1.md) Phase 2，记录 secret matcher、现代 HTTP 客户端、协议类 URL、路由 path 的交付度与验证证据。
+**Goal:** 对照 [ROADMAP.md](../ROADMAP.md) 与 [ROADMAP.md](../ROADMAP.md) Phase 2，记录 secret matcher、现代 HTTP 客户端、协议类 URL、路由 path 的交付度与验证证据。
 
 **Architecture:** `collect_findings()` 流水线 — 语义 endpoint matcher → router / secret → literal path → `dedup_findings()`；`spoor scan` 一次输出三类 finding。
 
@@ -144,7 +144,7 @@ spoor paths tests/fixtures/router.js
 3. Katana 真实 bundle fixture 回归
 4. GitHub Actions：test + fmt + clippy
 
-**明确不做：** 见 [plan4.md](../../../plan4.md) / [plan5.md](../../../plan5.md)（已标记 out of scope）。
+**明确不做：** 见 [ROADMAP.md](../ROADMAP.md) / [ROADMAP.md](../ROADMAP.md)（已标记 out of scope）。
 
 ---
 

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** Phase 1 核心 matcher 已签 off。Phase 2 请新建实施计划后再 `executing-plans`。
 
-**Goal:** 对照 [plan1.md](../../plan1.md) Phase 1 与 [Phase 1 实施计划](./2026-05-31-spoor-phase-1.md)，记录 endpoint matcher 交付度、流程执行、验证证据与遗留项。
+**Goal:** 对照 [ROADMAP.md](../ROADMAP.md) Phase 1 与 [Phase 1 实施计划](./phase-1-implementation.md)，记录 endpoint matcher 交付度、流程执行、验证证据与遗留项。
 
 **Architecture:** `collect_findings()` 流水线 — fetch → location → xhr → literal → `dedup_findings()`；语义匹配产出 `FindingKind::Endpoint`，字面量产出 `Path`。
 
@@ -15,7 +15,7 @@
 
 | 步骤 | 状态 |
 |------|------|
-| `writing-plans` Phase 1 计划 | ✅ `2026-05-31-spoor-phase-1.md` |
+| `writing-plans` Phase 1 计划 | ✅ `phase-1-implementation.md` |
 | `subagent-driven-development` 7 Task | ✅ 逐 Task implementer + 最终 code-reviewer |
 | `verification-before-completion` | ✅ 下文 §4 fresh run |
 | 审查修复 commit | ✅ `3feda14` 动态 fetch EXPR 误报 |

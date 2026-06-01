@@ -1,15 +1,15 @@
 # Spoor Phase 0 回顾与完成度报告
 
-> **For agentic workers:** 本文档为 Phase 0 回顾产物。Phase 0 收尾任务见文末「Remediation Tasks」；Phase 1 实施请另建 `docs/superpowers/plans/2026-05-31-spoor-phase-1.md` 并按 `superpowers:executing-plans` 执行。
+> **For agentic workers:** 本文档为 Phase 0 回顾产物。Phase 0 收尾任务见文末「Remediation Tasks」；Phase 1 实施请另建 `docs/superpowers/plans/phase-1-implementation.md` 并按 `superpowers:executing-plans` 执行。
 
-**Goal:** 对照 [plan1.md](../../plan1.md) Phase 0 交付项，记录实际完成度、流程偏差、验证证据与收尾任务。
+**Goal:** 对照 [ROADMAP.md](../ROADMAP.md) Phase 0 交付项，记录实际完成度、流程偏差、验证证据与收尾任务。
 
 **Architecture:** Rust workspace（`spoor-core` 库 + `spoor-cli` 二进制），Oxc 解析 JS/TS，AST `Visit` 收集字符串字面量，经 `collapsed_string` + `maybe_url` 过滤后输出 plan2 JSON 模型的 `path` finding。
 
 **Tech Stack:** Rust 1.93+、Oxc 0.133、clap 4、serde_json
 
 **文档日期:** 2026-05-31  
-**对照规格:** [plan1.md](../../plan1.md) Phase 0、[plan2.md](../../plan2.md) 命名与 JSON 模型
+**对照规格:** [ROADMAP.md](../ROADMAP.md) Phase 0、[INTEGRATION.md](../INTEGRATION.md) 命名与 JSON 模型
 
 ---
 
@@ -18,7 +18,7 @@
 ### 1.1 实际执行路径
 
 ```
-用户: @plan1.md @plan2.md 名字使用 Spoor + GitHub remote
+用户: @ROADMAP.md @INTEGRATION.md 名字使用 Spoor + GitHub remote
   → 直接读 plan → 写代码 → cargo test → git init（未完成 commit）
 ```
 
@@ -43,7 +43,7 @@
 
 ## 2. plan1 Phase 0 完成度清单
 
-来源：[plan1.md § Phase 0 — 基础](../../plan1.md)（交付：能解析 JS，跑通一条最小链路）
+来源：[ROADMAP.md § Phase 0 — 基础](../../ROADMAP.md)（交付：能解析 JS，跑通一条最小链路）
 
 | # | plan1 交付项 | 状态 | 证据 / 说明 |
 |---|-------------|------|-------------|
@@ -155,8 +155,8 @@ Spoor/
 ├── Cargo.toml                          # workspace 根
 ├── Cargo.lock
 ├── README.md
-├── plan1.md                            # 高层路线图
-├── plan2.md                            # 命名 + JSON 模型
+├── ROADMAP.md                            # 高层路线图
+├── INTEGRATION.md                            # 命名 + JSON 模型
 ├── docs/superpowers/plans/             # Superpowers 计划目录（本文档）
 ├── crates/
 │   ├── spoor-core/
@@ -280,7 +280,7 @@ cargo test -p spoor-core analyzer -- --nocapture
 ### Task 5: 更新 plan1 Phase 0 checklist
 
 **Files:**
-- Modify: `plan1.md:77-82` — 将已完成项 `[ ]` 改为 `[x]`，crate 名更新为 spoor-*
+- Modify: `ROADMAP.md:77-82` — 将已完成项 `[ ]` 改为 `[x]`，crate 名更新为 spoor-*
 
 - [x] **Step 1:** 编辑 checklist 反映 spoor 命名与当前状态
 
@@ -301,7 +301,7 @@ cargo test -p spoor-core analyzer -- --nocapture
 
 Phase 1 目标见 plan1 § Phase 1：fetch / location / XHR / jQuery matcher + `spoor apis` 有真实输出。
 
-**建议：** 新建 `docs/superpowers/plans/2026-05-31-spoor-phase-1.md`，按 `writing-plans` 格式分解 matcher 任务，Phase 0 签 off 后再 `executing-plans`。
+**建议：** 新建 `docs/superpowers/plans/phase-1-implementation.md`，按 `writing-plans` 格式分解 matcher 任务，Phase 0 签 off 后再 `executing-plans`。
 
 ### 7.3 优先级建议（Phase 1 首批 matcher）
 
