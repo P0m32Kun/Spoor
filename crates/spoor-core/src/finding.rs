@@ -46,6 +46,14 @@ pub struct SecretContext {
     pub nearby_keys: Vec<String>,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[serde(rename_all = "lowercase")]
+pub enum Sensitivity {
+    High,
+    Medium,
+    Low,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Finding {
     /// Source JS file (absolute path when available). Set at output time for JSONL.
@@ -74,6 +82,14 @@ pub struct Finding {
     /// HTTP status from live probe when `--from-url` verification is enabled.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub http_status: Option<u16>,
+    /// Sensitivity level for endpoints (high/medium/low).
+    /// Used by Anchor to prioritize bounty candidates.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sensitivity: Option<Sensitivity>,
+    /// Whether this endpoint likely requires authentication.
+    /// Used by Anchor for authenticated testing decisions.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub requires_auth_hint: Option<bool>,
 }
 
 impl Finding {
@@ -92,6 +108,8 @@ impl Finding {
             context: None,
             tags: Vec::new(),
             http_status: None,
+            sensitivity: None,
+            requires_auth_hint: None,
         }
     }
 
@@ -110,6 +128,8 @@ impl Finding {
             context: None,
             tags: Vec::new(),
             http_status: None,
+            sensitivity: None,
+            requires_auth_hint: None,
         }
     }
 
@@ -133,6 +153,30 @@ impl Finding {
             context: None,
             tags: Vec::new(),
             http_status: None,
+            sensitivity: None,
+            requires_auth_hint: None,
         }
+    }
+
+    /// Set sensitivity level for this finding.
+    pub fn with_sensitivity(mut self, sensitivity: Sensitivity) -> Self {
+        self.sensitivity = Some(sensitivity);
+        self
+    }
+
+    /// Set requires_auth_hint for this finding.
+    pub fn with_requires_auth_hint(mut self, requires_auth: bool) -> Self {
+        self.requires_auth_hint = Some(requires_auth);
+        self
+    }
+
+    /// Returns true if this is a high-sensitivity endpoint.
+    pub fn is_high_sensitivity(&self) -> bool {
+        self.sensitivity == Some(Sensitivity::High)
+    }
+
+    /// Returns true if this endpoint likely requires authentication.
+    pub fn requires_auth(&self) -> bool {
+        self.requires_auth_hint == Some(true)
     }
 }

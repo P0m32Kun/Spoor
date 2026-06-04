@@ -57,6 +57,8 @@ impl<'a> Visit<'a> for SourceMapMatcher<'a> {
                         context: None,
                         tags: vec!["sourcemap".into()],
                         http_status: None,
+                        sensitivity: None,
+                        requires_auth_hint: None,
                     });
                 }
             }

@@ -5,7 +5,7 @@ use oxc_parser::{ParseOptions, Parser};
 use oxc_span::SourceType;
 
 use crate::dedup::dedup_findings;
-use crate::finding::{Finding, FindingKind};
+use crate::finding::{Finding, FindingKind, Sensitivity};
 use crate::matcher::{
     AxiosMatcher, FetchMatcher, GotMatcher, GraphqlMatcher, JqueryMatcher, KyMatcher,
     LiteralCollector, LocationMatcher, MatchContext, RouterMatcher, SecretMatcher,
@@ -82,7 +82,9 @@ impl<'a> Analyzer<'a> {
         );
         findings
             .extend(LiteralCollector::new(MatchContext::new(self.source)).collect(&ret.program));
-        dedup_findings(findings)
+        let findings = dedup_findings(findings);
+        // Enrich endpoints with sensitivity and auth hints
+        findings.into_iter().map(|f| enrich_finding(f)).collect()
     }
 
     /// Walk AST and return path findings from string literals (Phase 0 baseline).
@@ -110,6 +112,65 @@ impl<'a> Analyzer<'a> {
             error_count,
         }
     }
+}
+
+/// High-signal endpoint tags for SRC bounty scanning.
+const HIGH_SIGNAL_TAGS: &[&str] = &[
+    "admin", "role", "user", "order",
+    "export", "download", "upload",
+    "token", "secret", "config",
+    "debug", "swagger", "graphql", "actuator",
+];
+
+/// Sensitive path patterns that indicate high sensitivity.
+const HIGH_SENSITIVITY_PATTERNS: &[&str] = &[
+    "/admin", "/manage", "/internal", "/private",
+    "/api/v1/admin", "/api/admin", "/api/internal",
+    "/user/", "/users/", "/account/", "/profile/",
+    "/order", "/orders", "/payment", "/billing",
+    "/export", "/download", "/upload", "/import",
+    "/config", "/settings", "/secret", "/token",
+    "/debug", "/actuator", "/swagger", "/graphql",
+];
+
+/// Patterns that suggest authentication is required.
+const AUTH_REQUIRED_PATTERNS: &[&str] = &[
+    "/api/", "/v1/", "/v2/", "/internal/", "/private/",
+    "/user/", "/users/", "/account/", "/profile/",
+    "/admin/", "/manage/", "/dashboard/",
+    "/order", "/orders", "/payment", "/billing",
+];
+
+/// Enrich a finding with sensitivity and auth hints based on its value and tags.
+fn enrich_finding(mut finding: Finding) -> Finding {
+    // Only enrich endpoints
+    if finding.kind != FindingKind::Endpoint {
+        return finding;
+    }
+
+    let value_lower = finding.value.to_lowercase();
+
+    // Auto-detect sensitivity if not set
+    if finding.sensitivity.is_none() {
+        let is_high = HIGH_SENSITIVITY_PATTERNS.iter().any(|p| value_lower.contains(p));
+        let has_high_signal_tag = finding.tags.iter().any(|t| HIGH_SIGNAL_TAGS.contains(&t.as_str()));
+
+        if is_high || has_high_signal_tag {
+            finding.sensitivity = Some(Sensitivity::High);
+        } else if value_lower.contains("/api/") {
+            finding.sensitivity = Some(Sensitivity::Medium);
+        } else {
+            finding.sensitivity = Some(Sensitivity::Low);
+        }
+    }
+
+    // Auto-detect requires_auth_hint if not set
+    if finding.requires_auth_hint.is_none() {
+        let likely_requires_auth = AUTH_REQUIRED_PATTERNS.iter().any(|p| value_lower.contains(p));
+        finding.requires_auth_hint = Some(likely_requires_auth);
+    }
+
+    finding
 }
 
 #[cfg(test)]

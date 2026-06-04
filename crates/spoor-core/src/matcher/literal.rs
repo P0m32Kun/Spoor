@@ -54,6 +54,8 @@ impl<'a> Visit<'a> for LiteralCollector<'a> {
                     context: None,
                     tags: vec!["literal".into()],
                     http_status: None,
+                    sensitivity: None,
+                    requires_auth_hint: None,
                 });
             }
         }

@@ -57,6 +57,8 @@ impl<'a> LocationMatcher<'a> {
             context: None,
             tags: Vec::new(),
             http_status: None,
+            sensitivity: None,
+            requires_auth_hint: None,
         });
     }
 }

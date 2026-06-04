@@ -76,6 +76,8 @@ impl<'a> GraphqlMatcher<'a> {
             context: None,
             tags: vec!["graphql".into()],
             http_status: None,
+            sensitivity: None,
+            requires_auth_hint: None,
         });
     }
 }

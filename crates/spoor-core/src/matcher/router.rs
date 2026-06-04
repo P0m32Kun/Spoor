@@ -58,6 +58,8 @@ impl<'a> Visit<'a> for RouterMatcher<'a> {
                 context: None,
                 tags: vec!["router".into()],
                 http_status: None,
+                sensitivity: None,
+                requires_auth_hint: None,
             });
         }
         walk_object_expression(self, obj);
